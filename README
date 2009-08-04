@@ -1,0 +1,104 @@
+Introduction
+------------
+This Python package provides modules to read, write and calculate Replay Gain
+as well as 2 scripts that utilize these modules to do Replay Gain.
+Replay Gain [http://replaygain.org/] is a proposed standard (and has been for
+some time -- but it's widely accepted) that's designed to solve the problem of
+varying volumes between different audio files. I won't lay it all out for you
+here, go read it yourself.
+
+Requirements
+------------
+ - Python 2.4 (probably) [http://python.org/]
+ - Mutagen [http://code.google.com/p/mutagen/]
+ - GStreamer 0.10 [http://gstreamer.org/]
+ - pygst 0.10 [http://gstreamer.freedesktop.org/modules/gst-python.html]
+
+Installation
+------------
+Just install it like any other Python package: Unpack, then (as root/with
+``sudo``)
+ # python setup.py install
+
+``replaygain``
+--------------
+This is a program like, say, ``vorbisgain`` or ``mp3gain``, the difference
+being that instead of supporting a mere one format, it supports several:
+ - Ogg Vorbis (or probably anything you can put into an Ogg container)
+ - Flac
+ - WavPack
+ - MP3 (with 3 different formats)
+Basic usage is simple:
+ $ replaygain AUDIOFILE1 AUDIOFILE2 ...
+There are some options; see 'em by running
+ $ replaygain --help
+
+``collectiongain``
+------------------
+This program is designed to apply Replay Gain to whole music collections, plus
+the ability to simply add new files, run ``collectiongain`` and have it
+replay-gain those files without asking twice.
+To use it, simply run
+ $ collectiongain PATH_TO_MUSIC
+and re-run it whenever you add new files. Run
+ $ collectiongain --help
+to see possible options.
+If, however, you want to find out how exactly ``collectiongain`` works, read on
+(but be warned: It's long, boring, technical, incomprehensible and awesome).
+
+``collectiongain`` runs in 2 phases: The file collecting phase and the actual
+run.
+Prior to analyzing any audio data, ``collectiongain`` gathers all audio files in
+the directory and determines a so-called album ID for each from the file's tags:
+ - If the file contains an 'album' tag, it is joined with either
+    * an 'albumartist' tag, if that exists,
+    * or the 'artist' tag
+    * or nothing if neither tag exists.
+   The resulting artist-album combination is the album ID for that file.
+ - If the file doesn't contain an 'album' tag, it is presumed to be a single
+   track without album; it will only get track gain, no album gain.
+Since this step takes a relatively long time, the album IDs are cached between
+several runs of ``collectiongain``. If a file was modified or a new file was
+added, the album ID will be (re-)calculated for that file only.
+The program will also cache an educated guess as to whether a file was already
+processed and had Replay Gain added -- if ``collectiongain`` thinks so, that
+file will totally ignored for the actual run. This flag is set whenever the file
+is processed in the actual run phase (save for dry runs, which you can enable
+with the '--dry-run' switch) and is cleared whenever a file was changed. You can
+disable these assumptions with the '--ignore-cache' switch; in that case, the
+program will actually physically check every file in your collection for
+Replay Gain data.
+For the actual run, ``collectiongain`` will simply look at all files that have
+survived the cleansing described above; for files that don't contain Replay Gain
+information, ``collectiongain`` will calculate it and write it to the files (use
+the '--force' flag to calculate gain even if the file already has gain data).
+Here comes the big moment of the album ID: files that have the same album ID are
+considered to be one album (duh) for the calculation of album gain. If only one
+file of an album is missing gain information, the whole album will be
+recalculated to make sure the data is up-to-date.
+
+MP3 formats
+-----------
+In contrast to modern audio file formats, there is no commonly accepted standard
+for Replay Gain information in MP3 files. There is the ``mp3gain`` program that
+directly changes the audio data, but this means you have to decide on one form
+of Replay Gain: Track gain or album gain. Plus, it's ugly. And it might kill
+your cat. Or make your plant eat your dog.
+Because there are several not-quite-standards to store Replay Gain data in MP3
+files, both ``replaygain`` and ``collectiongain`` force you to make a choice
+(well, they don't *force* you technically, but don't let that fool you) through
+the '--mp3-format' option. They support 3 formats:
+ - 'ql'
+   Replay Gain information is stored in ID3v2.4 RVA2 frames. Quod Libet uses
+   this format, so choose this if you run QL. This is also the default setting.
+ - 'fb2k'
+   Replay Gain information is stored in ID3v2 TXXX frames. Foobar2000 reads and
+   writes this format; Quod Libet reads it, but converts it to 'ql' format
+   without asking.
+ - 'mp3gain'
+   Replay Gain information is stored in APE v2 tags. ``mp3gain`` writes these
+   tags (this doesn't mean this format works like the ``mp3gain`` program; it
+   doesn't, see above). Maybe there are programs that support this format. If
+   you know, you could tell me.
+I hope that's enough confusion for now.
+
