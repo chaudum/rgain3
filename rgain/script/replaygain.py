@@ -32,15 +32,14 @@ def calculate_gain(files, ref_level):
     from rgain import rgcalc
     
     # handlers
-    def on_finished(src):
+    def on_finished(evsrc, trackdata, albumdata):
         loop.quit()
     
-    def on_trk_started(src, filename):
-        print ou("  %s:" % filename),
+    def on_trk_started(evsrc, filename):
+        print ou("  %s:" % filename.decode("utf-8")),
         sys.stdout.flush()
         
-    def on_trk_finished(src, filename):
-        gaindata = rg.track_data.get(filename)
+    def on_trk_finished(evsrc, filename, gaindata):
         if gaindata:
             print "%.2f dB" % gaindata.gain
         else:

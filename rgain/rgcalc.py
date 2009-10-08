@@ -31,6 +31,11 @@ from rgain import GainData
 
 GST_TAG_REFERENCE_LEVEL = "replaygain-reference-level"
 
+def to_utf8(string):
+    if isinstance(string, unicode):
+        return string.encode("utf-8")
+    else:
+        return string.decode("utf-8").encode("utf-8")
 
 class ReplayGain(gobject.GObject):
     
@@ -40,40 +45,32 @@ class ReplayGain(gobject.GObject):
     as an exercise to the user. It only analyzes the files and presents the
     result.
     Basic usage is as follows:
-     - instantiate the class, passing it a list of file names and optionally
-       * wether to force a re-calculation, even if Replay Gain data is
-         discovered (defaults to ``False``),
-       * the reference loudness level to use (defaults to 89 dB).
-     - connect to the signals the class provides (using the GObject signal
-       system) to get notified when everything is done:
-       * ``all-finished`` is emitted when all tracks were analyzed (has no
-         arguments),
-       * ``track-finished`` is emitted when one track is done (has the file name
-         as single argument)
+     - instantiate the class, passing it a list of file names and optionally the
+       reference loudness level to use (defaults to 89 dB),
+     - connect to the signals the class provides,
      - get yourself a glib main loop (e.g. ``gobject.MainLoop`` or the one from
-       Gtk)
-     - call ``replaygain_instance.start()`` to start processing
-     - start your main loop to dispatch events
+       GTK),
+     - call ``replaygain_instance.start()`` to start processing,
+     - start your main loop to dispatch events and
      - wait.
     Once you've done that, you can retrieve the data from ``track_data`` (which
     is a dict: keys are file names, values are ``GainData`` instances) and
     ``album_data`` (a 'GainData' instance, even though it may contain only
-    ``None`` values if album gain isn't calculated). ``track_data`` may not
-    contain all file names you passed, if ``force`` is False - it just isn't
-    computed. Note that the values don't contain any kind of unit, which might
-    be needed.
+    ``None`` values if album gain isn't calculated). Note that the values don't
+    contain any kind of unit, which might be needed.
     """
     
     __gsignals__ = {
-        "all-finished": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        "all-finished": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                         (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT)),
         "track-started": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                          (gobject.TYPE_PYOBJECT,)),
+                          (gobject.TYPE_STRING,)),
         "track-finished": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                           (gobject.TYPE_PYOBJECT,)),
+                           (gobject.TYPE_STRING, gobject.TYPE_PYOBJECT)),
     }
     
     
-    def __init__(self, files, force=False, ref_lvl=89):
+    def __init__(self, files, ref_lvl=89):
         gobject.GObject.__init__(self)
         self.files = files
         self.force = force
@@ -99,8 +96,17 @@ class ReplayGain(gobject.GObject):
             raise ValueError("do never, ever run this thing without any files")
         self.pipe.set_state(gst.STATE_PLAYING)
     
+    def pause(self, pause):
+        if pause:
+            self.pipe.set_state(gst.STATE_PAUSED)
+        else:
+            self.pipe.set_state(gst.STATE_PLAYING)
     
-    # private functions
+    def stop(self):
+        self.pipe.set_state(gst.STATE_NULL)
+    
+    
+    # internal stuff
     def _setup_pipeline(self):
         """Setup the pipeline."""
         self.pipe = gst.Pipeline("replaygain")
@@ -127,7 +133,8 @@ class ReplayGain(gobject.GObject):
         bus.connect("message", self._on_message)
     
     def _setup_rg_elem(self):
-        self.rg.set_property("forced", self.force)
+        # there's no way to specify 'forced', as it's usually useless
+        self.rg.set_property("forced", True)
         self.rg.set_property("reference-level", self.ref_lvl)
     
     def _next_file(self):
@@ -145,12 +152,12 @@ class ReplayGain(gobject.GObject):
         try:
             fname = self._files_iter.next()
         except StopIteration:
-            self.emit("all-finished")
+            self.emit("all-finished", self.track_data, self.album_data)
             return False
         
         # make a new src element
         self.src = gst.element_factory_make("filesrc", "src")
-        self.src.set_property("location", fname.encode("utf-8"))
+        self.src.set_property("location", to_utf8(fname))
         
         self._current_file = fname
         
@@ -159,7 +166,7 @@ class ReplayGain(gobject.GObject):
         
         self.rg.set_property("num-tracks", 1)
         
-        self.emit("track-started", fname)
+        self.emit("track-started", to_utf8(fname))
         
         return True
     
@@ -200,12 +207,12 @@ class ReplayGain(gobject.GObject):
                 return
             self._process_tags(msg)
         elif msg.type == gst.MESSAGE_EOS:
-            self.emit("track-finished", self._current_file)
+            self.emit("track-finished", to_utf8(self._current_file),
+                      self.track_data[self._current_file])
             self.rg.set_locked_state(True)
             self.pipe.set_state(gst.STATE_NULL)
             ret = self._next_file()
             if ret:
-                #self.emit("track-started", self._current_file)
                 self.rg.set_locked_state(False)
                 self.pipe.set_state(gst.STATE_PLAYING)
 
@@ -218,7 +225,7 @@ def calculate(*args, **kwargs):
     the same arguments, but setups its own main loop and returns the results
     once everything's finished.
     """
-    def on_finished(src):
+    def on_finished(evsrc, trackdata, albumdata):
         # all done
         loop.quit()
     
