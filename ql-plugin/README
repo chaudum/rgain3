@@ -1,0 +1,6 @@
+Put 'replaygain.py' into either ~/.quodlibet/plugins/songsmenu/ or your
+system-wide QL plugin directory (sorry, you'll need to find that yourself).
+Then, activate it in QL's plugins dialogue. 'rgain' will have to be installed
+(for the Python version you're running QL on; as that will usually be the system
+Python in both cases, it should work out most of the time).
+
