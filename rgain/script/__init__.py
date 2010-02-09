@@ -18,6 +18,7 @@
 
 import sys
 from optparse import OptionParser
+import traceback
 
 
 stdout_encoding = sys.stdout.encoding or sys.getfilesystemencoding()
@@ -33,7 +34,18 @@ def un(arg, encoding):
 
 
 class Error(Exception):
-    pass
+    def __init__(self, message):
+        Exception.__init__(self, message)
+        # as long as instances are only constructed in exception handlers, this
+        # should get us what we want
+        self.exc_info = sys.exc_info()
+    
+    def __unicode__(self):
+        # not a particularly good metric
+        if not __debug__:
+            return Exception.__unicode__(self)
+        else:
+            return unicode(traceback.format_exception(*self.exc_info))
 
 
 def common_options():

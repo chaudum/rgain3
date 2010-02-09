@@ -70,7 +70,7 @@ class ReplayGain(gobject.GObject):
     }
     
     
-    def __init__(self, files, ref_lvl=89):
+    def __init__(self, files, force=False, ref_lvl=89):
         gobject.GObject.__init__(self)
         self.files = files
         self.force = force
