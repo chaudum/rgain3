@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Copyright (c) 2009 Felix Krull <f_krull@gmx.de>
 
 from distutils.core import setup
 
