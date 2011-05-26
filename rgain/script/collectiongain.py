@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# kate: indent-width 4; indent-mode python
 #
 # Copyright (c) 2009, 2010 Felix Krull <f_krull@gmx.de>
 #
@@ -58,13 +59,13 @@ def read_cache(cache_file):
                 f.close()
             except NameError:
                 pass
-    
+
     return files
 
 
 def write_cache(cache_file, files):
     cache_dir = os.path.dirname(cache_file)
-    
+
     try:
         if not os.path.isdir(cache_dir):
             os.makedirs(cache_dir, 0755)
@@ -104,7 +105,7 @@ def get_album_id(music_dir, filepath):
         tags = mutagen.File(properpath)
     except Exception, exc:
         raise Error(u"%s: error - %s" % (filepath, exc))
-    
+
     if ext == ".mp3":
         if "TALB" in tags:
             album = tags["TALB"].text[0]
@@ -112,7 +113,7 @@ def get_album_id(music_dir, filepath):
             album = None
     else:
         album = tags.get("album", [""])[0]
-    
+
     if album:
         if ext == ".mp3":
             artist = None
@@ -129,13 +130,13 @@ def get_album_id(music_dir, filepath):
             artist = tags.get("albumartist") or tags.get("artist")
             if artist:
                 artist = artist[0]
-        
+
         if not artist:
             artist = u""
         album_id = u"%s - %s" % (artist, album)
     else:
         album_id = None
-    
+
     return album_id
 
 
@@ -147,7 +148,7 @@ def collect_files(music_dir, files, cache, supported_formats):
                                   sys.getfilesystemencoding())
             properpath = os.path.join(dirpath, filename)
             mtime = os.path.getmtime(properpath)
-            
+
             # check the cache
             if filepath in cache:
                 cache[filepath] = True
@@ -155,7 +156,7 @@ def collect_files(music_dir, files, cache, supported_formats):
                 if mtime <= record[1]:
                     # the file's still ok
                     continue
-            
+
             ext = os.path.splitext(filename)[1]
             if ext in supported_formats:
                 i += 1
@@ -175,7 +176,7 @@ def transform_cache(files, ignore_cache=False):
             albums.setdefault(album_id, []).append(filepath)
         else:
             single_tracks.append(filepath)
-    
+
     # purge anything that's marked as processed, if desired
     if not ignore_cache:
         for album_id, album_files in albums.items():
@@ -186,11 +187,11 @@ def transform_cache(files, ignore_cache=False):
                     break
             if not keep:
                 del albums[album_id]
-        
+
         for filepath in single_tracks[:]:
             if files[filepath][2]:
                 single_tracks.remove(filepath)
-    
+
     return albums, single_tracks
 
 
@@ -209,7 +210,7 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
         if not dry_run:
             update_cache(files, music_dir, single_tracks, None)
         print
-    
+
     for album_id, album_files in albums.iteritems():
         print ou(u"%s:" % album_id),
         do_gain((os.path.join(music_dir, path) for path in album_files),
@@ -223,21 +224,21 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
 def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
                       mp3_format="ql", ignore_cache=False):
     music_dir = un(music_dir, sys.getfilesystemencoding())
-    
+
     music_abspath = os.path.abspath(music_dir)
-    musicpath_hash = md5(music_abspath).hexdigest()
+    musicpath_hash = md5(music_abspath.encode("utf-8")).hexdigest()
     cache_file = os.path.join(os.path.expanduser("~"), ".cache",
                               "collectiongain-cache.%s" % musicpath_hash)
-    
+
     # load the cache
     files = read_cache(cache_file)
-    
+
     # yeah, side-effects are bad, I know
     validate_cache(files)
     cache = dict.fromkeys(files.iterkeys(), False)
-    
+
     print "Collecting files ..."
-    
+
     # whenever this part is stopped (KeyboardInterrupt/other exception), the
     # cache is written to disk so all progress persists
     try:
@@ -250,30 +251,30 @@ def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
                 del files[filepath]
         # hopefully gets rid of at least one huge data structure
         del cache
-    
+
         albums, single_tracks = transform_cache(files, ignore_cache)
         print
-        
+
         # gain everything that has survived the cleansing
         do_gain_all(music_dir, albums, single_tracks, files, ref_level, force,
                   dry_run, mp3_format)
     finally:
         validate_cache(files)
         write_cache(cache_file, files)
-    
+
     print "All finished."
 
 
 def collectiongain_options():
     opts = common_options()
-    
+
     opts.add_option("--ignore-cache", help="Don't trust implicit assumptions "
                     "about what was already done, instead check all files for "
                     "Replay Gain data explicitly.", dest="ignore_cache",
                     action="store_true")
-    
+
     opts.set_defaults(ignore_cache=False)
-    
+
     opts.set_usage("%prog [options] MUSIC_DIR")
     opts.set_description("Calculate Replay Gain for a large set of audio files "
                          "without asking many questions. This program "
