@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# kate: indent-width 4; indent-mode python;
 # 
 # Copyright (c) 2009, 2010 Felix Krull <f_krull@gmx.de>
 # 
@@ -25,6 +26,9 @@ from mutagen.apev2 import APEv2File
 from rgain import GainData
 
 
+class AudioFormatError(Exception):
+    def __init__(self, filename):
+        Exception.__init__(self, u"Did not understand file: %s" % filename)
 
 def parse_db(string):
     string = string.strip()
@@ -47,7 +51,9 @@ def parse_peak(string):
 # Flac files at least (also WavPack it seems)
 def rg_read_gain(filename):
     tags = mutagen.File(filename)
-    
+    if tags is None:
+        raise AudioFormatError(filename)
+
     def read_gain_data(desc):
         gain_tag = u"replaygain_%s_gain" % desc
         peak_tag = u"replaygain_%s_peak" % desc
@@ -72,6 +78,8 @@ def rg_read_gain(filename):
 
 def rg_write_gain(filename, trackdata, albumdata):
     tags = mutagen.File(filename)
+    if tags is None:
+        raise AudioFormatError(filename)
     
     if trackdata:
         tags[u"replaygain_track_gain"] = u"%.8f dB" % trackdata.gain
@@ -88,6 +96,8 @@ def rg_write_gain(filename, trackdata, albumdata):
 # ID3 for Quod Libet
 def mp3_ql_read_gain(filename):
     tags = ID3(filename)
+    if tags is None:
+        raise AudioFormatError(filename)
     
     def read_gain_data(desc):
         tag = u"RVA2:%s" % desc
@@ -108,6 +118,8 @@ def mp3_ql_read_gain(filename):
 
 def mp3_ql_write_gain(filename, trackdata, albumdata):
     tags = ID3(filename)
+    if tags is None:
+        raise AudioFormatError(filename)
     
     if trackdata:
         trackgain = RVA2(desc=u"track", channel=1, gain=trackdata.gain,
@@ -129,6 +141,8 @@ def mp3_ql_write_gain(filename, trackdata, albumdata):
 # ID3 for foobar2000
 def mp3_fb2k_read_gain(filename):
     tags = ID3(filename)
+    if tags is None:
+        raise AudioFormatError(filename)
     
     def read_gain_data(desc):
         gain_tag = u"TXXX:replaygain_%s_gain" % desc
@@ -156,6 +170,8 @@ def mp3_fb2k_read_gain(filename):
 
 def mp3_fb2k_write_gain(filename, trackdata, albumdata):
     tags = ID3(filename)
+    if tags is None:
+        raise AudioFormatError(filename)
     
     def write_gain_data(desc, gaindata):
         gain_frame = TXXX(encoding=3, desc=u"replaygain_%s_gain" % desc,
@@ -179,6 +195,8 @@ def mp3_fb2k_write_gain(filename, trackdata, albumdata):
 # I hope this works
 def mp3_mp3gain_read_gain(filename):
     tags = APEv2File(filename)
+    if tags is None:
+        raise AudioFormatError(filename)
     
     def read_gain_data(desc):
         gain_tag = u"replaygain_%s_gain" % desc
@@ -204,6 +222,8 @@ def mp3_mp3gain_read_gain(filename):
 
 def mp3_mp3gain_write_gain(filename, trackdata, albumdata):
     tags = APEv2File(filename)
+    if tags is None:
+        raise AudioFormatError(filename)
     
     if trackdata:
         tags[u"replaygain_track_gain"] = u"%.8f dB" % trackdata.gain
@@ -301,4 +321,3 @@ class BaseFormatsMap(object):
             raise UnknownFiletype(ext)
         
         accessor[1](filename, trackgain, albumgain)
-

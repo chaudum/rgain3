@@ -20,6 +20,8 @@ import sys
 from optparse import OptionParser
 import traceback
 
+from rgain.rgio import AudioFormatError
+
 
 stdout_encoding = sys.stdout.encoding or sys.getfilesystemencoding()
 def ou(arg):
@@ -34,18 +36,20 @@ def un(arg, encoding):
 
 
 class Error(Exception):
-    def __init__(self, message):
+    def __init__(self, message, exc_info=None):
         Exception.__init__(self, message)
         # as long as instances are only constructed in exception handlers, this
         # should get us what we want
-        self.exc_info = sys.exc_info()
+        self.exc_info = exc_info if exc_info else sys.exc_info()
     
     def __unicode__(self):
-        # not a particularly good metric
-        if not __debug__:
+        if not self._output_full_exception():
             return Exception.__unicode__(self)
         else:
-            return unicode(traceback.format_exception(*self.exc_info))
+            return unicode(u"".join(traceback.format_exception(*self.exc_info)))
+
+    def _output_full_exception(self):
+        return self.exc_info[0] not in [IOError, AudioFormatError]
 
 
 def common_options():
