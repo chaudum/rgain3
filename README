@@ -9,7 +9,7 @@ here, go read it yourself.
 
 Requirements
 ------------
- - Python 2.4 (probably) [http://python.org/]
+ - Python 2.5 (probably) [http://python.org/]
  - Mutagen [http://code.google.com/p/mutagen/]
  - GStreamer 0.10 [http://gstreamer.org/]
  - pygst 0.10 [http://gstreamer.freedesktop.org/modules/gst-python.html]
