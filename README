@@ -102,3 +102,9 @@ the '--mp3-format' option. They support 3 formats:
    you know, you could tell me.
 I hope that's enough confusion for now.
 
+Copyright
+---------
+With the exception of the manpages, all files are
+Copyright (c) 2009, 2010 Felix Krull <f_krull@gmx.de>
+The manpages were originally written for the Debian project and are
+Copyright (c) 2011 Simon Chopin <chopin.simon@gmail.com>
