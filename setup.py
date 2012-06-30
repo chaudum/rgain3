@@ -1,7 +1,57 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from distutils.core import setup
+from contextlib import closing
+import os
+from distutils.core import Command, Distribution, setup
+from distutils.command.build import build
+from distutils.errors import DistutilsOptionError
+
+import docutils
+from docutils.parsers import rst
+from docutils.writers import manpage
+
+class ManpagesDistribution(Distribution):
+    def __init__(self, attrs=None):
+        self.rst_manpages = None
+        Distribution.__init__(self, attrs)
+
+class build_manpages(Command):
+    description = "Generate man pages."
+    user_options = [
+        ("outputdir=", "b", "output directory for man pages"),
+    ]
+    
+    def initialize_options(self):
+        self.rst_manpages = None
+        self.outputdir = None
+    
+    def finalize_options(self):
+        if not self.outputdir:
+            self.outputdir = os.path.join("build", "man")
+        self.rst_manpages = self.distribution.rst_manpages
+        self.parser = rst.Parser()
+        self.writer = manpage.Writer()
+    
+    def run(self):
+        if not self.rst_manpages:
+            return
+        if not os.path.exists(self.outputdir):
+            os.makedirs(self.outputdir, mode=0755)
+        for infile, outfile in self.rst_manpages:
+            print "Converting %s to %s ..." % (infile, outfile),
+            settings = docutils.frontend.OptionParser(
+                components=(rst.Parser, manpage.Writer)).get_default_values()
+            doc = docutils.utils.new_document(infile, settings=settings)
+            with open(infile, "rU") as f:
+                self.parser.parse(f.read(), doc)
+            with closing(docutils.io.FileOutput(
+                    destination_path=os.path.join(self.outputdir, outfile),
+                    encoding="utf-8")) as out:
+                self.writer.write(doc, out)
+            print "ok"
+
+build.sub_commands.append(("build_manpages", None))
 
 setup(
     name="rgain",
@@ -34,7 +84,14 @@ hand is a kind of fire-and-forget tool for big amounts of music files.
     
     packages=["rgain", "rgain.script"],
     scripts=["scripts/replaygain", "scripts/collectiongain"],
+    rst_manpages=[
+        ("man/replaygain.rst", "replaygain.1"),
+        ("man/collectiongain.rst", "collectiongain.1"),
+    ],
     
     requires=["pygst", "mutagen"],
+    
+    cmdclass={"build_manpages": build_manpages},
+    distclass=ManpagesDistribution
 )
 
