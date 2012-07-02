@@ -62,7 +62,7 @@ setup(
     url="http://bitbucket.org/fk/rgain",
     license="GNU General Public License (v2 or later)",
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 7 - Inactive",
         "Environment :: Console",
         "Intended Audience :: End Users/Desktop",
         "Intended Audience :: Developers",
