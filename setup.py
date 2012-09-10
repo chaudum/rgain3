@@ -8,6 +8,7 @@ from distutils.command.build import build
 from distutils.errors import DistutilsOptionError
 
 import docutils
+import docutils.io
 from docutils.parsers import rst
 from docutils.writers import manpage
 
