@@ -50,13 +50,15 @@ If, however, you want to find out how exactly ``collectiongain`` works, read on
 run.
 Prior to analyzing any audio data, ``collectiongain`` gathers all audio files in
 the directory and determines a so-called album ID for each from the file's tags:
- - If the file contains an 'album' tag, it is joined with either
+ - If the file contains a Musicbrainz album ID, that is used.
+ - Otherwise, if the file contains an 'album' tag, it is joined with either
     * an 'albumartist' tag, if that exists,
     * or the 'artist' tag
     * or nothing if neither tag exists.
    The resulting artist-album combination is the album ID for that file.
- - If the file doesn't contain an 'album' tag, it is presumed to be a single
-   track without album; it will only get track gain, no album gain.
+ - If the file doesn't contain a Musicbrainz album ID or an 'album' tag, it is
+   presumed to be a single track without album; it will only get track gain, no
+   album gain.
 Since this step takes a relatively long time, the album IDs are cached between
 several runs of ``collectiongain``. If a file was modified or a new file was
 added, the album ID will be (re-)calculated for that file only.

@@ -106,6 +106,21 @@ def get_album_id(music_dir, filepath):
     except Exception, exc:
         raise Error(u"%s: error - %s" % (filepath, exc))
 
+    album_id = None
+    if ext == ".mp3":
+        for frame in tags.itervalues():
+            if isinstance(frame, TXXX) and frame.desc == "MusicBrainz Album Id":
+                album_id = frame.text[0]
+                break
+    else:
+        try:
+            album_id = tags.get("musicbrainz_albumid")[0]
+        except TypeError:
+            pass
+
+    if album_id is not None:
+        return album_id
+
     if ext == ".mp3":
         if "TALB" in tags:
             album = tags["TALB"].text[0]
