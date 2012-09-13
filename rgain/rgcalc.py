@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # 
-# Copyright (c) 2009, 2010 Felix Krull <f_krull@gmx.de>
+# Copyright (c) 2009, 2010, 2012 Felix Krull <f_krull@gmx.de>
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -123,6 +123,10 @@ class ReplayGain(gobject.GObject):
         self.sink = gst.element_factory_make("fakesink", "sink")
         self.pipe.add(self.sink)
         
+        # Set num-tracks to the number of files we have to process so they're
+        # all treated as one album. Fixes #8.
+        self.rg.set_property("num-tracks", len(self.files))
+        
         # link
         gst.element_link_many(self.conv, self.res, self.rg, self.sink)
         self.decbin.connect("pad-added", self._on_pad_added)
@@ -163,8 +167,6 @@ class ReplayGain(gobject.GObject):
         
         self.pipe.add(self.src)
         self.src.link(self.decbin)
-        
-        self.rg.set_property("num-tracks", 1)
         
         self.emit("track-started", to_utf8(fname))
         
