@@ -241,7 +241,8 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
               force=False, dry_run=False, mp3_format="ql", jobs=0,
               stop_on_error=False):
     pool = multiprocessing.Pool(None if jobs == 0 else jobs)
-    queue = multiprocessing.Queue()
+    manager = multiprocessing.Manager()
+    queue = manager.Queue()
     num_jobs = 0
 
     if single_tracks:
