@@ -96,8 +96,11 @@ behaviour. Possible choices with this switch are:
    this file does not contain valid (read: consistent) Replay Gain information.
 
 [1] http://mp3gain.sourceforce.net
+
 [2] http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2
+
 [3] http://foobar2000.org
+
 [4] http://code.google.com/p/quodlibet
 
 SEE ALSO
