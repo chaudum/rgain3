@@ -36,3 +36,7 @@ class GainData(object):
         return ("gain=%.2f dB; peak=%.8f; reference-level=%i dB" %
                 (self.gain, self.peak, self.ref_level))
 
+    def __eq__(self, other):
+        return other is not None and (self.gain == other.gain and
+            self.peak == other.peak and self.ref_level == other.ref_level)
+
