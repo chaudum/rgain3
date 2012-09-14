@@ -17,6 +17,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import multiprocessing
+import cStringIO
 import sys
 import os.path
 try:
@@ -216,28 +218,70 @@ def update_cache(files, music_dir, tracks, album_id):
         files[filepath] = (album_id, mtime, True)
 
 
-def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
-              force=False, dry_run=False, mp3_format="ql", stop_on_error=False):
-    if single_tracks:
-        do_gain((os.path.join(music_dir, path) for path in single_tracks),
-                ref_level, force, dry_run, False, mp3_format)
-        # update cache information
-        if not dry_run:
-            update_cache(files, music_dir, single_tracks, None)
+def do_gain_async(queue, job_key, files, ref_level, force, dry_run, album,
+        mp3_format):
+    stdout = cStringIO.StringIO()
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    sys.stdout = sys.stderr = stdout
+    try:
+        if album:
+            print ou(u"%s:" % job_key[1]),
+        do_gain(files, ref_level, force, dry_run, album, mp3_format)
         print
+    finally:
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+        # Signalise to the master process that this job is done, one way or the
+        # other.
+        queue.put((job_key, stdout.getvalue()))
+
+
+def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
+              force=False, dry_run=False, mp3_format="ql", jobs=0,
+              stop_on_error=False):
+    pool = multiprocessing.Pool(None if jobs == 0 else jobs)
+    queue = multiprocessing.Queue()
+    num_jobs = 0
+
+    if single_tracks:
+        pool.apply_async(do_gain_async, queue, (single_tracks, None),
+            [os.path.join(music_dir, path) for path in single_tracks],
+            ref_level, force, dry_run, False, mp3_format)
+        num_jobs += 1
+        #do_gain((os.path.join(music_dir, path) for path in single_tracks),
+        #        ref_level, force, dry_run, False, mp3_format)
+        # update cache information
+        #if not dry_run:
+        #    update_cache(files, music_dir, single_tracks, None)
+        #print
 
     for album_id, album_files in albums.iteritems():
-        print ou(u"%s:" % album_id),
-        do_gain((os.path.join(music_dir, path) for path in album_files),
-                ref_level, force, dry_run, True, mp3_format)
+        #print ou(u"%s:" % album_id),
+        pool.apply_async(do_gain, queue, (album_files, album_id),
+            [os.path.join(music_dir, path) for path in album_files],
+            ref_level, force, dry_run, True, mp3_format)
+        num_jobs += 1
+        #do_gain((os.path.join(music_dir, path) for path in album_files),
+        #        ref_level, force, dry_run, True, mp3_format)
         # update cache
+        #if not dry_run:
+        #    update_cache(files, music_dir, album_files, album_id)
+        #print
+    pool.close()
+
+    while num_jobs > 0:
+        result = queue.get()
+        num_jobs -= 1
+        sys.stdout.write(result[0])
+        # Update cache.
         if not dry_run:
-            update_cache(files, music_dir, album_files, album_id)
-        print
+            tracks, album_id = result[1]
+            update_cache(files, music_dir, tracks, album_id)
 
 
 def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
-                      mp3_format="ql", ignore_cache=False):
+                      mp3_format="ql", ignore_cache=False, jobs=0):
     music_dir = un(music_dir, sys.getfilesystemencoding())
 
     music_abspath = os.path.abspath(music_dir)
@@ -272,7 +316,7 @@ def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
 
         # gain everything that has survived the cleansing
         do_gain_all(music_dir, albums, single_tracks, files, ref_level, force,
-                  dry_run, mp3_format)
+                  dry_run, mp3_format, jobs)
     finally:
         validate_cache(files)
         write_cache(cache_file, files)
@@ -287,8 +331,10 @@ def collectiongain_options():
                     "about what was already done, instead check all files for "
                     "Replay Gain data explicitly.", dest="ignore_cache",
                     action="store_true")
+    opts.add_option("-j", "--jobs", help="TODO help.", dest="jobs",
+                    action="store", type="int")
 
-    opts.set_defaults(ignore_cache=False)
+    opts.set_defaults(ignore_cache=False, jobs=0)
 
     opts.set_usage("%prog [options] MUSIC_DIR")
     opts.set_description("Calculate Replay Gain for a large set of audio files "
@@ -316,7 +362,7 @@ def collectiongain():
     
     try:
         do_collectiongain(args[0], opts.ref_level, opts.force, opts.dry_run,
-                          opts.mp3_format, opts.ignore_cache)
+                          opts.mp3_format, opts.ignore_cache, opts.jobs)
     except Error, exc:
         print >> sys.stderr, ou(unicode(exc))
         sys.exit(1)
