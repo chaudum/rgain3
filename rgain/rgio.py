@@ -139,7 +139,7 @@ def clamp_rva2_gain(v):
 		v = float(64 * 512 - 1) / 512.0
 		clamped = True
 	if clamped:
-		warnings.warn("gain value was out of bounds for RVA2 frame, was clamped to %.2f" % v)
+		warnings.warn("gain value was out of bounds for RVA2 frame and was clamped to %.2f" % v)
 	return v
 
 # I'm not sure if this situation could even reasonably happen, but
@@ -153,7 +153,7 @@ def clamp_rva2_peak(v):
 		v = float(2**16 - 1) / float(2**15)
 		clamped = True
 	if clamped:
-		warnings.warn("peak value was out of bounds for RVA2 frame, was clamped to %.5f" % v)
+		warnings.warn("peak value was out of bounds for RVA2 frame and was clamped to %.5f" % v)
 	return v
 
 def mp3_legacy_write_gain(filename, trackdata, albumdata):
@@ -262,7 +262,7 @@ def gaindata_almost_equal(a, b):
         return True
 
     with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", module="rgio")
+        warnings.filterwarnings("ignore")
         return (gain_almost_equal(a.gain, b.gain) and
             peak_almost_equal(a.peak, b.peak) and
             almost_equal(a.ref_level, b.ref_level, REF_LEVEL_EPSILON))
