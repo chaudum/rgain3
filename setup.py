@@ -6,11 +6,7 @@ import os
 from distutils.core import Command, Distribution, setup
 from distutils.command.build import build
 from distutils.errors import DistutilsOptionError
-
-import docutils
-import docutils.io
-from docutils.parsers import rst
-from docutils.writers import manpage
+import docutils.core
 
 class ManpagesDistribution(Distribution):
     def __init__(self, attrs=None):
@@ -31,8 +27,6 @@ class build_manpages(Command):
         if not self.outputdir:
             self.outputdir = os.path.join("build", "man")
         self.rst_manpages = self.distribution.rst_manpages
-        self.parser = rst.Parser()
-        self.writer = manpage.Writer()
     
     def run(self):
         if not self.rst_manpages:
@@ -41,15 +35,9 @@ class build_manpages(Command):
             os.makedirs(self.outputdir, mode=0755)
         for infile, outfile in self.rst_manpages:
             print "Converting %s to %s ..." % (infile, outfile),
-            settings = docutils.frontend.OptionParser(
-                components=(rst.Parser, manpage.Writer)).get_default_values()
-            doc = docutils.utils.new_document(infile, settings=settings)
-            with open(infile, "rU") as f:
-                self.parser.parse(f.read(), doc)
-            with closing(docutils.io.FileOutput(
+            docutils.core.publish_file(source_path=infile,
                     destination_path=os.path.join(self.outputdir, outfile),
-                    encoding="utf-8")) as out:
-                self.writer.write(doc, out)
+                    writer_name="manpage")
             print "ok"
 
 build.sub_commands.append(("build_manpages", None))
