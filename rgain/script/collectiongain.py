@@ -245,6 +245,7 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
     queue = manager.Queue()
     num_jobs = 0
 
+    print "Dispatching jobs ..."
     if single_tracks:
         pool.apply_async(do_gain_async, [queue, (single_tracks, None),
             [os.path.join(music_dir, path) for path in single_tracks],
@@ -271,14 +272,25 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
         #print
     pool.close()
 
-    while num_jobs > 0:
-        result = queue.get()
-        num_jobs -= 1
-        sys.stdout.write(result[0])
-        # Update cache.
-        if not dry_run:
-            tracks, album_id = result[1]
-            update_cache(files, music_dir, tracks, album_id)
+    print "Now waiting for results ..."
+    try:
+        l = num_jobs
+        while num_jobs > 0:
+            result = queue.get()
+            num_jobs -= 1
+            print result[1].strip()
+            print "Finished %s of %s." % (l - num_jobs, l)
+            print
+            # Update cache.
+            if not dry_run:
+                tracks, album_id = result[0]
+                update_cache(files, music_dir, tracks, album_id)
+    finally:
+        try:
+            pool.terminate()
+        except Exception:
+            # terminate ends rather horribly so we just silence it.
+            pass
 
 
 def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
@@ -313,7 +325,6 @@ def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
         del cache
 
         albums, single_tracks = transform_cache(files, ignore_cache)
-        print
 
         # gain everything that has survived the cleansing
         do_gain_all(music_dir, albums, single_tracks, files, ref_level, force,
@@ -335,7 +346,7 @@ def collectiongain_options():
     opts.add_option("-j", "--jobs", help="TODO help.", dest="jobs",
                     action="store", type="int")
 
-    opts.set_defaults(ignore_cache=False, jobs=0)
+    opts.set_defaults(ignore_cache=False, jobs=None)
 
     opts.set_usage("%prog [options] MUSIC_DIR")
     opts.set_description("Calculate Replay Gain for a large set of audio files "
@@ -360,6 +371,8 @@ def collectiongain():
     opts, args = optparser.parse_args()
     if len(args) != 1:
         optparser.error("pass one directory path")
+    if opts.jobs is not None and opts.jobs < 1:
+        optparser.error("jobs must be at least 1")
     
     try:
         do_collectiongain(args[0], opts.ref_level, opts.force, opts.dry_run,
