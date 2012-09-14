@@ -217,7 +217,7 @@ def update_cache(files, music_dir, tracks, album_id):
 
 
 def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
-              force=False, dry_run=False, mp3_format="ql", stop_on_error=False):
+              force=False, dry_run=False, mp3_format=None, stop_on_error=False):
     if single_tracks:
         do_gain((os.path.join(music_dir, path) for path in single_tracks),
                 ref_level, force, dry_run, False, mp3_format)
@@ -237,7 +237,7 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
 
 
 def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
-                      mp3_format="ql", ignore_cache=False):
+                      mp3_format=None, ignore_cache=False):
     music_dir = un(music_dir, sys.getfilesystemencoding())
 
     music_abspath = os.path.abspath(music_dir)

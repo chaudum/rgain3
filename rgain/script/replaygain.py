@@ -56,7 +56,7 @@ def calculate_gain(files, ref_level):
 
 
 def do_gain(files, ref_level=89, force=False, dry_run=False, album=True,
-            mp3_format="ql"):
+            mp3_format=None):
     
     files = [un(filename, sys.getfilesystemencoding()) for filename in files]
     
@@ -131,7 +131,7 @@ def do_gain(files, ref_level=89, force=False, dry_run=False, album=True,
 
 
 # a simple Replay Gain dump
-def show_rgain_info(filenames, mp3_format="ql"):
+def show_rgain_info(filenames, mp3_format=None):
     formats_map = rgio.BaseFormatsMap(mp3_format)
     
     for filename in filenames:

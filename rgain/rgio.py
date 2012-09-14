@@ -295,6 +295,9 @@ class BaseFormatsMap(object):
         "legacy": (mp3_legacy_read_gain, mp3_legacy_write_gain),
         "ql": (mp3_legacy_read_gain, mp3_legacy_write_gain),
     }
+
+    MP3_DISPLAY_FORMATS = ["default", "replaygain.org", "legacy", "ql", "fb2k"]
+    MP3_DEFAULT_FORMAT = "default"
     
     def __init__(self, mp3_format=None, more_mappings=None):
         # yeah, you need to choose
