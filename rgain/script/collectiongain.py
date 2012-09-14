@@ -245,9 +245,9 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
     num_jobs = 0
 
     if single_tracks:
-        pool.apply_async(do_gain_async, queue, (single_tracks, None),
+        pool.apply_async(do_gain_async, [queue, (single_tracks, None),
             [os.path.join(music_dir, path) for path in single_tracks],
-            ref_level, force, dry_run, False, mp3_format)
+            ref_level, force, dry_run, False, mp3_format])
         num_jobs += 1
         #do_gain((os.path.join(music_dir, path) for path in single_tracks),
         #        ref_level, force, dry_run, False, mp3_format)
@@ -258,9 +258,9 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
 
     for album_id, album_files in albums.iteritems():
         #print ou(u"%s:" % album_id),
-        pool.apply_async(do_gain, queue, (album_files, album_id),
+        pool.apply_async(do_gain_async, [queue, (album_files, album_id),
             [os.path.join(music_dir, path) for path in album_files],
-            ref_level, force, dry_run, True, mp3_format)
+            ref_level, force, dry_run, True, mp3_format])
         num_jobs += 1
         #do_gain((os.path.join(music_dir, path) for path in album_files),
         #        ref_level, force, dry_run, True, mp3_format)
