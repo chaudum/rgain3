@@ -18,6 +18,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import os.path
+import warnings
 
 import mutagen
 from mutagen.id3 import ID3, RVA2, TXXX
@@ -116,14 +117,41 @@ def mp3_ql_read_gain(filename):
     
     return read_gain_data("track"), read_gain_data("album")
 
+def clamp_rva2_gain(v):
+	clamped = False
+	if v < -64:
+		v = -64
+		clamped = True
+	if v >= 64:
+		v = float(64 * 512 - 1) / 512.0
+		clamped = True
+	if clamped:
+		warnings.warn("gain value was out of bounds for RVA2 frame, was clamped to %.2f" % v)
+	return v
+
+# I'm not sure if this situation could even reasonably happen, but
+# can't hurt to check, right? Right!?
+def clamp_rva2_peak(v):
+	clamped = False
+	if v < 0:
+		v = 0
+		clamped = True
+	if v >= 2:
+		v = float(2**16 - 1) / float(2**15)
+		clamped = True
+	if clamped:
+		warnings.warn("peak value was out of bounds for RVA2 frame, was clamped to %.5f" % v)
+	return v
+
 def mp3_ql_write_gain(filename, trackdata, albumdata):
     tags = ID3(filename)
     if tags is None:
         raise AudioFormatError(filename)
     
     if trackdata:
-        trackgain = RVA2(desc=u"track", channel=1, gain=trackdata.gain,
-                         peak=trackdata.peak)
+        trackgain = RVA2(desc=u"track", channel=1,
+						 gain=clamp_rva2_gain(trackdata.gain),
+                         peak=clamp_rva2_peak(trackdata.peak))
         tags.add(trackgain)
         # write QL reference loudness
         reflevel = TXXX(encoding=3,
@@ -131,8 +159,9 @@ def mp3_ql_write_gain(filename, trackdata, albumdata):
                         text=[u"%i dB" % trackdata.ref_level])
         tags.add(reflevel)
     if albumdata:
-        albumgain = RVA2(desc=u"album", channel=1, gain=albumdata.gain,
-                         peak=albumdata.peak)
+        albumgain = RVA2(desc=u"album", channel=1,
+						 gain=clamp_rva2_gain(albumdata.gain),
+                         peak=clamp_rva2_peak(albumdata.peak))
         tags.add(albumgain)
     
     tags.save()
