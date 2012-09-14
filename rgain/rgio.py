@@ -242,32 +242,44 @@ GAIN_EPSILON = 0.1
 PEAK_EPSILON = 0.001
 REF_LEVEL_EPSILON = 0.1
 
+# For these three functions, b is always the legacy values, i.e. the potentially
+# clamped ones.
+def gain_almost_equal(a, b):
+    return (almost_equal(a, b, GAIN_EPSILON) or
+        almost_equal(clamp_rva2_gain(a), b, GAIN_EPSILON))
+
+def peak_almost_equal(a, b):
+    return (almost_equal(a, b, PEAK_EPSILON) or
+        almost_equal(clamp_rva2_peak(a), b, PEAK_EPSILON))
+
 def gaindata_almost_equal(a, b):
+    # Ensure neither element is None.
     if a is None:
         return b is None
     if b is None:
-        # Always false I think, but whatever.
         return a is None
     if a == b:
         return True
-    return (almost_equal(a.gain, b.gain, GAIN_EPSILON) and
-        almost_equal(a.peak, b.peak, PEAK_EPSILON) and
-        almost_equal(a.ref_level, b.ref_level, REF_LEVEL_EPSILON))
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", module="rgio")
+        return (gain_almost_equal(a.gain, b.gain) and
+            peak_almost_equal(a.peak, b.peak) and
+            almost_equal(a.ref_level, b.ref_level, REF_LEVEL_EPSILON))
 
 def mp3_default_read_gain(filename):
-    all_gains = []
-    for f in [mp3_rgorg_read_gain, mp3_legacy_read_gain]:
-        trackdata, albumdata = f(filename)
-        if trackdata is not None:
-            all_gains.append((trackdata, albumdata))
-    if len(all_gains) > 0 and all(
-            gaindata_almost_equal(t1, t2) and gaindata_almost_equal(a1, a2)
-            for (t1, a1), (t2, a2) in combinations(all_gains, 2)):
-        # That means all the gain levels are close enough; we just pick the
-        # first one and roll with that.
-        return all_gains[0]
-    # Otherwise we say we have nothing.
-    return None, None
+    rgorg = mp3_rgorg_read_gain(filename)
+    legacy = mp3_legacy_read_gain(filename)
+    # We want to ensure we have all bits of data so if we only have one format,
+    # we say we have none to enforce recalculation.
+    if rgorg[0] is None or legacy[0] is None:
+        return (None, None)
+    if (not gaindata_almost_equal(rgorg[0], legacy[0]) or
+            not gaindata_almost_equal(rgorg[1], legacy[1])):
+        # The different formats are not similar enough.
+        return (None, None)
+    else:
+        return rgorg
 
 def mp3_default_write_gain(filename, trackdata, albumdata):
     mp3_legacy_write_gain(filename, trackdata, albumdata)
