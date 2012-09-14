@@ -7,7 +7,7 @@
 --------------------------------
 
 :Date:   2011-11-26
-:Version: 1.0
+:Version: 1.0.2
 :Manual section: 1
 :Manual group: rgain
 
@@ -42,14 +42,9 @@ OPTIONS
     Set the reference loudness to REF dB (default: 89 dB)
 
 --mp3-format=MP3_FORMAT
-    Choose the Replay Gain data format for MP3 files.  Since there is no
-    commonly accepted standard for Replay Gain in MP3 files, you need to choose.
-    Possible formats are :
-
- - *ql* (used by **Quod Libet**). This is the default value.
- - *fb2k* (read and written by **foobar2000**, also understood by **Quod Libet**)
- - *mp3gain* (tags as written by the **mp3gain** program; this doesn't modify the
-   MP3 audio data as said program does).
+    Choose the Replay Gain data format for MP3 files. The default setting should
+    be compatible with most decent software music players, so it is generally
+    not necessary to mess with this setting. See below for more information.
 
 --no-album
     Don't write any album gain information.
@@ -58,6 +53,49 @@ OPTIONS
     Don't calculate anything, simply show Replay Gain information for the
     specified files. In this mode, all options other than **--mp3-format**
     are ignored.
+
+MP3 formats
+===========
+Proper Replay Gain support for MP3 files is a bit of a mess: on the one hand,
+there is the **mp3gain** application [http://mp3gain.sourceforge.net] which was
+relatively widely used (I don't know if it still is) -- it directly modifies the
+audio data which has the advantage that it works with pretty much any player,
+but it also means you have to decide ahead of time whether you want track gain
+or album gain. Besides, it's just not very elegant. On the other hand, there are
+at least two commonly used ways to store proper Replay Gain information in ID3v2
+tags
+[http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2].
+
+Now, in general you don't have to worry about this when using this package: by
+default, **replaygain** and **collectiongain** will read and write Replay Gain
+information in the two most commonly used formats. However, if for whatever
+reason you need more control over the MP3 Replay Gain information, you can use
+the **--mp3-format** option (supported by both programs) to change the behaviour.
+Possible choices with this switch are:
+
+ - *replaygain.org* (alias: *fb2k*)
+   Replay Gain information is stored in ID3v2 TXXX frames. This format is
+   specified on the replaygain.org website as the recommended format for MP3
+   files. Notably, this format is also used by the foobar2000 music player for
+   Windows [http://foobar2000.org].
+
+ - *legacy* (alias: *ql*)
+   Replay Gain information is stored in ID3v2.4 RVA2 frames. This format is
+   described as "legacy" by replaygain.org; however, it is still the primary
+   format for at least the Quod Libet music player
+   [http://code.google.com/p/quodlibet] and possibly others. It should be noted
+   that this format does not support volume adjustments of more than 64 dB: if
+   the calculated gain value is smaller than -64 dB or greater than or equal to
+   +64 dB, it is clamped to these limit values.
+
+ - *default*
+   This is the default implementation used by both **replaygain** and
+   **collectiongain**. When writing Replay Gain data, both the *replaygain.org*
+   as well as the *legacy* format are written. As for reading, if a file
+   contains data in both formats, both data sets are read and then compared. If
+   they match up, that Replay Gain information is returned for the file.
+   However, if they don't match, no Replay Gain data is returned to signal that
+   this file does not contain valid (read: consistent) Replay Gain information.
 
 SEE ALSO
 ========

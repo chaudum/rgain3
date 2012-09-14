@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # 
-# Copyright (c) 2009, 2010 Felix Krull <f_krull@gmx.de>
+# Copyright (c) 2009, 2010, 2012 Felix Krull <f_krull@gmx.de>
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -64,10 +64,9 @@ def common_options():
                     dest="ref_level", action="store", type="int")
     opts.add_option("--mp3-format", help="Choose the Replay Gain data format "
                     "for MP3 files. The default setting should be compatible "
-                    "with most decent software music players (Quod Libet and "
-                    "foobar2000 are known to work), so it is generally not "
-                    "necessary to mess with this setting. Check the README or "
-                    "the man page for more information.",
+                    "with most decent software music players, so it is "
+                    "generally not necessary to mess with this setting. Check "
+                    "the README or man page for more information.",
                     dest="mp3_format", action="store", type="choice",
                     choices=rgain.rgio.BaseFormatsMap.MP3_DISPLAY_FORMATS)
     

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # kate: indent-width 4; indent-mode python;
 # 
-# Copyright (c) 2009, 2010 Felix Krull <f_krull@gmx.de>
+# Copyright (c) 2009, 2010, 2012 Felix Krull <f_krull@gmx.de>
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -288,7 +288,6 @@ class BaseFormatsMap(object):
 
     MP3_FORMATS = {
         None: (mp3_default_read_gain, mp3_default_write_gain),
-        "": (mp3_default_read_gain, mp3_default_write_gain),
         "default": (mp3_default_read_gain, mp3_default_write_gain),
         "replaygain.org": (mp3_rgorg_read_gain, mp3_rgorg_write_gain),
         "fb2k": (mp3_rgorg_read_gain, mp3_rgorg_write_gain),
