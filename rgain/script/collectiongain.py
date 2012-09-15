@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # kate: indent-width 4; indent-mode python
 #
-# Copyright (c) 2009, 2010 Felix Krull <f_krull@gmx.de>
+# Copyright (c) 2009, 2010, 2012 Felix Krull <f_krull@gmx.de>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -238,7 +238,7 @@ def do_gain_async(queue, job_key, files, ref_level, force, dry_run, album,
 
 
 def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
-              force=False, dry_run=False, mp3_format="ql", jobs=0,
+              force=False, dry_run=False, mp3_format=None, jobs=0,
               stop_on_error=False):
     pool = multiprocessing.Pool(None if jobs == 0 else jobs)
     manager = multiprocessing.Manager()
@@ -294,7 +294,7 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
 
 
 def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
-                      mp3_format="ql", ignore_cache=False, jobs=0):
+                      mp3_format=None, ignore_cache=False, jobs=0):
     music_dir = un(music_dir, sys.getfilesystemencoding())
 
     music_abspath = os.path.abspath(music_dir)

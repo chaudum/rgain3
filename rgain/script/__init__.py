@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # 
-# Copyright (c) 2009, 2010 Felix Krull <f_krull@gmx.de>
+# Copyright (c) 2009, 2010, 2012 Felix Krull <f_krull@gmx.de>
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,8 +20,7 @@ import sys
 from optparse import OptionParser
 import traceback
 
-from rgain.rgio import AudioFormatError
-
+import rgain.rgio
 
 stdout_encoding = sys.stdout.encoding or sys.getfilesystemencoding()
 def ou(arg):
@@ -49,7 +48,7 @@ class Error(Exception):
             return unicode(u"".join(traceback.format_exception(*self.exc_info)))
 
     def _output_full_exception(self):
-        return self.exc_info[0] not in [IOError, AudioFormatError]
+        return self.exc_info[0] not in [IOError, rgain.rgio.AudioFormatError]
 
 
 def common_options():
@@ -64,17 +63,15 @@ def common_options():
                     "loudness to REF dB (default: %default dB)", metavar="REF",
                     dest="ref_level", action="store", type="int")
     opts.add_option("--mp3-format", help="Choose the Replay Gain data format "
-                    "for MP3 files. Since there is no commonly accepted "
-                    "standard for Replay Gain in MP3 files, you need to "
-                    "choose. Possible formats are 'ql' (used by Quod Libet), "
-                    "'fb2k' (read and written by foobar2000, also understood "
-                    "by Quod Libet) and 'mp3gain' (tags as written by the "
-                    "'mp3gain' program; this doesn't modify the MP3 audio "
-                    "data as said program does). Default is '%default'.",
+                    "for MP3 files. The default setting should be compatible "
+                    "with most decent software music players, so it is "
+                    "generally not necessary to mess with this setting. Check "
+                    "the README or man page for more information.",
                     dest="mp3_format", action="store", type="choice",
-                    choices=["ql", "fb2k", "mp3gain"])
+                    choices=rgain.rgio.BaseFormatsMap.MP3_DISPLAY_FORMATS)
     
-    opts.set_defaults(force=False, dry_run=False, ref_level=89, mp3_format="ql")
+    opts.set_defaults(force=False, dry_run=False, ref_level=89,
+        mp3_format="default")
     
     return opts
 

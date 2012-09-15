@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # 
-# Copyright (c) 2009, 2010 Felix Krull <f_krull@gmx.de>
+# Copyright (c) 2009, 2010, 2012 Felix Krull <f_krull@gmx.de>
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,4 +35,8 @@ class GainData(object):
     def __str__(self):
         return ("gain=%.2f dB; peak=%.8f; reference-level=%i dB" %
                 (self.gain, self.peak, self.ref_level))
+
+    def __eq__(self, other):
+        return other is not None and (self.gain == other.gain and
+            self.peak == other.peak and self.ref_level == other.ref_level)
 
