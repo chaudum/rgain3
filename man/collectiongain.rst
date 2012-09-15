@@ -57,6 +57,10 @@ OPTIONS
     Don't trust implicit assumptions about what was already done, instead check
     all files for Replay Gain data explicitly.
 
+-j JOBS, --jobs=JOBS
+    Run JOBS jobs simultaneously. Must be >= 1. By default, this is set to the
+    number of CPU cores in the system to provide best performance.
+
 SEE ALSO
 ========
 

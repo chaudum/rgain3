@@ -343,8 +343,10 @@ def collectiongain_options():
                     "about what was already done, instead check all files for "
                     "Replay Gain data explicitly.", dest="ignore_cache",
                     action="store_true")
-    opts.add_option("-j", "--jobs", help="TODO help.", dest="jobs",
-                    action="store", type="int")
+    opts.add_option("-j", "--jobs", help="Specifies the number of jobs to run "
+                    "simultaneously. Must be >= 1. By default, this is set to "
+                    "the number of CPU cores in the system to provide best "
+                    "performance.", dest="jobs", action="store", type="int")
 
     opts.set_defaults(ignore_cache=False, jobs=None)
 
