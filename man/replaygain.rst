@@ -7,7 +7,7 @@
 --------------------------------
 
 :Date:   2011-11-26
-:Version: 1.0.2
+:Version: 1.1
 :Manual section: 1
 :Manual group: rgain
 
