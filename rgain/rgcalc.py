@@ -27,7 +27,7 @@ pygst.require("0.10")
 import gst
 import gobject
 
-from rgain import GainData
+from rgain import GainData, GSTError
 
 GST_TAG_REFERENCE_LEVEL = "replaygain-reference-level"
 
@@ -62,11 +62,13 @@ class ReplayGain(gobject.GObject):
     
     __gsignals__ = {
         "all-finished": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                         (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT)),
+            (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT)),
         "track-started": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                          (gobject.TYPE_STRING,)),
+            (gobject.TYPE_STRING,)),
         "track-finished": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                           (gobject.TYPE_STRING, gobject.TYPE_PYOBJECT)),
+            (gobject.TYPE_STRING, gobject.TYPE_PYOBJECT)),
+        "error": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+            (gobject.TYPE_PYOBJECT,)),
     }
     
     
@@ -220,7 +222,11 @@ class ReplayGain(gobject.GObject):
             if ret:
                 self.rg.set_locked_state(False)
                 self.pipe.set_state(gst.STATE_PLAYING)
-
+        elif msg.type == gst.MESSAGE_ERROR:
+            self.rg.set_locked_state(True)
+            self.pipe.set_state(gst.STATE_NULL)
+            err, debug = msg.parse_error()
+            self.emit("error", GSTError(err, debug))
 
 
 def calculate(*args, **kwargs):
@@ -230,14 +236,21 @@ def calculate(*args, **kwargs):
     the same arguments, but setups its own main loop and returns the results
     once everything's finished.
     """
+    exc_slot = [None]
+
     def on_finished(evsrc, trackdata, albumdata):
         # all done
         loop.quit()
-    
+
+    def on_error(evsrc, exc):
+        exc_slot[0] = exc
+        loop.quit()
     rg = ReplayGain(*args, **kwargs)
     rg.connect("all-finished", on_finished)
+    rg.connect("error", on_error)
     loop = gobject.MainLoop()
     rg.start()
     loop.run()
+    if exc_slot[0] is not None:
+        raise exc_slot[0]
     return (rg.track_data, rg.album_data)
-

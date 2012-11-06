@@ -48,7 +48,8 @@ class Error(Exception):
             return unicode(u"".join(traceback.format_exception(*self.exc_info)))
 
     def _output_full_exception(self):
-        return self.exc_info[0] not in [IOError, rgain.rgio.AudioFormatError]
+        return self.exc_info[0] not in [IOError, rgain.rgio.AudioFormatError,
+            rgain.GSTError]
 
 
 def common_options():

@@ -30,6 +30,8 @@ def calculate_gain(files, ref_level):
     # this has to be done here since Gstreamer hooks into the command line
     # arguments if it's imported on module level
     from rgain import rgcalc
+
+    exc_slot = [None]
     
     # handlers
     def on_finished(evsrc, trackdata, albumdata):
@@ -44,14 +46,21 @@ def calculate_gain(files, ref_level):
             print "%.2f dB" % gaindata.gain
         else:
             print "done"
+
+    def on_error(evsrc, exc):
+        exc_slot[0] = exc
+        loop.quit()
     
     rg = rgcalc.ReplayGain(files, True, ref_level)
     rg.connect("all-finished", on_finished)
     rg.connect("track-started", on_trk_started)
     rg.connect("track-finished", on_trk_finished)
+    rg.connect("error", on_error)
     loop = gobject.MainLoop()
     rg.start()
     loop.run()
+    if exc_slot[0] is not None:
+        raise exc_slot[0]
     return rg.track_data, rg.album_data
 
 
@@ -78,7 +87,7 @@ def do_gain(files, ref_level=89, force=False, dry_run=False, album=True,
             try:
                 trackdata, albumdata = formats_map.read_gain(filename)
             except Exception, exc:
-                raise Error(u"%s: error - %s" % (filename, exc))
+                raise Error(u"%s: %s" % (filename, exc))
             else:
                 if trackdata and albumdata:
                     print "track and album"
@@ -123,7 +132,7 @@ def do_gain(files, ref_level=89, force=False, dry_run=False, album=True,
             try:
                 formats_map.write_gain(filename, trackdata, albumdata)
             except Exception, exc:
-                raise Error(u"%s: error - %s" % (filename, exc))
+                raise Error(u"%s: %s" % (filename, exc))
             else:
                 print "done"
     
@@ -205,6 +214,7 @@ def rgain():
             do_gain(args, opts.ref_level, opts.force, opts.dry_run, opts.album,
                     opts.mp3_format)
         except Error, exc:
+            print
             print >> sys.stderr, ou(unicode(exc))
             sys.exit(1)
         except KeyboardInterrupt:

@@ -40,3 +40,12 @@ class GainData(object):
         return other is not None and (self.gain == other.gain and
             self.peak == other.peak and self.ref_level == other.ref_level)
 
+class GSTError(Exception):
+    def __init__(self, gerror, debug):
+        self.domain = gerror.domain
+        self.code = gerror.code
+        self.message = gerror.message
+        self.debug = debug
+
+    def __unicode__(self):
+        return u"GST error: %s (%s)" % (self.message, self.debug)

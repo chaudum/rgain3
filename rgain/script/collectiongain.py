@@ -106,7 +106,7 @@ def get_album_id(music_dir, filepath):
     try:
         tags = mutagen.File(properpath)
     except Exception, exc:
-        raise Error(u"%s: error - %s" % (filepath, exc))
+        raise Error(u"%s: %s" % (filepath, exc))
 
     album_id = None
     if ext == ".mp3":
@@ -229,6 +229,9 @@ def do_gain_async(queue, job_key, files, ref_level, force, dry_run, album,
             print ou(u"%s:" % job_key[1]),
         do_gain(files, ref_level, force, dry_run, album, mp3_format)
         print
+    except Exception, exc:
+        print
+        print >> stdout, ou(unicode(exc))
     finally:
         sys.stdout = old_stdout
         sys.stderr = old_stderr
@@ -251,12 +254,6 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
             [os.path.join(music_dir, path) for path in single_tracks],
             ref_level, force, dry_run, False, mp3_format])
         num_jobs += 1
-        #do_gain((os.path.join(music_dir, path) for path in single_tracks),
-        #        ref_level, force, dry_run, False, mp3_format)
-        # update cache information
-        #if not dry_run:
-        #    update_cache(files, music_dir, single_tracks, None)
-        #print
 
     for album_id, album_files in albums.iteritems():
         #print ou(u"%s:" % album_id),
@@ -264,12 +261,6 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
             [os.path.join(music_dir, path) for path in album_files],
             ref_level, force, dry_run, True, mp3_format])
         num_jobs += 1
-        #do_gain((os.path.join(music_dir, path) for path in album_files),
-        #        ref_level, force, dry_run, True, mp3_format)
-        # update cache
-        #if not dry_run:
-        #    update_cache(files, music_dir, album_files, album_id)
-        #print
     pool.close()
 
     print "Now waiting for results ..."
@@ -380,6 +371,7 @@ def collectiongain():
         do_collectiongain(args[0], opts.ref_level, opts.force, opts.dry_run,
                           opts.mp3_format, opts.ignore_cache, opts.jobs)
     except Error, exc:
+        print
         print >> sys.stderr, ou(unicode(exc))
         sys.exit(1)
     except KeyboardInterrupt:
