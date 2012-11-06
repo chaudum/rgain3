@@ -27,7 +27,7 @@ pygst.require("0.10")
 import gst
 import gobject
 
-from rgain import GainData, GSTError
+from rgain import GainData, GSTError, util
 
 GST_TAG_REFERENCE_LEVEL = "replaygain-reference-level"
 
@@ -246,11 +246,12 @@ def calculate(*args, **kwargs):
         exc_slot[0] = exc
         loop.quit()
     rg = ReplayGain(*args, **kwargs)
-    rg.connect("all-finished", on_finished)
-    rg.connect("error", on_error)
-    loop = gobject.MainLoop()
-    rg.start()
-    loop.run()
+    with util.gobject_signals(rg,
+        ("all-finished", on_finished),
+        ("error", on_error),):
+        loop = gobject.MainLoop()
+        rg.start()
+        loop.run()
     if exc_slot[0] is not None:
         raise exc_slot[0]
     return (rg.track_data, rg.album_data)

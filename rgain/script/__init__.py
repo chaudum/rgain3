@@ -75,4 +75,3 @@ def common_options():
         mp3_format="default")
     
     return opts
-
