@@ -17,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import contextlib
 import multiprocessing
 import cStringIO
 import sys
@@ -217,27 +218,33 @@ def update_cache(files, music_dir, tracks, album_id):
         mtime = os.path.getmtime(os.path.join(music_dir, filepath))
         files[filepath] = (album_id, mtime, True)
 
-
-def do_gain_async(queue, job_key, files, ref_level, force, dry_run, album,
-        mp3_format):
-    stdout = cStringIO.StringIO()
+@contextlib.contextmanager
+def stdstreams(stdout, stderr):
     old_stdout = sys.stdout
     old_stderr = sys.stderr
-    sys.stdout = sys.stderr = stdout
+    sys.stdout = stdout
+    sys.stderr = stderr
     try:
-        if album:
-            print ou(u"%s:" % job_key[1]),
-        do_gain(files, ref_level, force, dry_run, album, mp3_format)
-        print
-    except Exception, exc:
-        print
-        print >> stdout, ou(unicode(exc))
+        yield
     finally:
         sys.stdout = old_stdout
         sys.stderr = old_stderr
-        # Signalise to the master process that this job is done, one way or the
-        # other.
-        queue.put((job_key, stdout.getvalue()))
+
+def do_gain_async(queue, job_key, files, ref_level, force, dry_run, album,
+        mp3_format):
+    output = cStringIO.StringIO()
+    try:
+        with stdstreams(output, output):
+            if album:
+                print ou(u"%s:" % job_key[1]),
+            do_gain(files, ref_level, force, dry_run, album, mp3_format)
+            print
+    except Exception, exc:
+        # We can't reliably serialise and pass the exception information to the
+        # driver process so we stringify it here.
+        queue.put((job_key, output.getvalue(), unicode(exc)))
+    else:
+        queue.put((job_key, output.getvalue(), None))
 
 
 def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
@@ -264,17 +271,23 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
     pool.close()
 
     print "Now waiting for results ..."
+    failed_jobs = []
     try:
-        l = num_jobs
+        all_jobs = num_jobs
+        successful = 0
         while num_jobs > 0:
-            result = queue.get()
+            job_key, output, exc = queue.get()
             num_jobs -= 1
-            print result[1].strip()
-            print "Finished %s of %s." % (l - num_jobs, l)
-            print
+            if exc:
+                failed_jobs.append((job_key, output, exc))
+            else:
+                successful += 1
+                print output.strip()
+                print "Successfully finished %s of %s." % (successful, all_jobs)
+                print
             # Update cache.
             if not dry_run:
-                tracks, album_id = result[0]
+                tracks, album_id = job_key
                 update_cache(files, music_dir, tracks, album_id)
     finally:
         try:
@@ -282,6 +295,13 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
         except Exception:
             # terminate ends rather horribly so we just silence it.
             pass
+        if len(failed_jobs) > 0:
+            print "Unfortunately, there were some errors:"
+            for key, output, exc in failed_jobs:
+                print output.strip()
+                print >> sys.stderr, ou(exc)
+                print
+        print "%s successful, %s failed." % (successful, len(failed_jobs))
 
 
 def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
