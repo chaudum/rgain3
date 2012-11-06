@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # 
-# Copyright (c) 2009, 2010, 2012 Felix Krull <f_krull@gmx.de>
+# Copyright (c) 2009-2012 Felix Krull <f_krull@gmx.de>
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -202,7 +202,7 @@ def rgain_options():
     return opts
 
 
-def rgain():
+def replaygain():
     optparser = rgain_options()
     opts, args = optparser.parse_args()
     if not args:
@@ -223,5 +223,5 @@ def rgain():
 
 
 if __name__ == "__main__":
-    rgain()
+    replaygain()
 

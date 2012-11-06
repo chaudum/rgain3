@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-# kate: indent-width 4; indent-mode python;
 # 
-# Copyright (c) 2009, 2010, 2012 Felix Krull <f_krull@gmx.de>
+# Copyright (c) 2009-2012 Felix Krull <f_krull@gmx.de>
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
