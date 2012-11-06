@@ -44,7 +44,7 @@ build.sub_commands.append(("build_manpages", None))
 
 setup(
     name="rgain",
-    version="1.1",
+    version="1.1.1",
     description="Multi-format Replay Gain utilities",
     author="Felix Krull",
     author_email="f_krull@gmx.de",
