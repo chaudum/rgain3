@@ -1,2 +1,9 @@
+syntax: re
 ^.+[.]py[co]$
-^build/.*$
+^.+~$
+
+syntax: glob
+MANIFEST
+dist
+build
+
