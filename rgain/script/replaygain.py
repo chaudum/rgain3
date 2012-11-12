@@ -19,7 +19,7 @@
 import sys
 import os.path
 
-import gobject
+from gi.repository import GObject
 
 from rgain import rgio, util
 from rgain.script import ou, un, Error, common_options, init_gstreamer
@@ -57,7 +57,7 @@ def calculate_gain(files, ref_level):
         ("track-started", on_trk_started),
         ("track-finished", on_trk_finished),
         ("error", on_error),):
-        loop = gobject.MainLoop()
+        loop = GObject.MainLoop()
         rg.start()
         loop.run()
     if exc_slot[0] is not None:

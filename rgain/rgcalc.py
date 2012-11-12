@@ -22,17 +22,14 @@ documentation or use the ``calculate`` function.
 
 import os.path
 
-import pygst
-pygst.require("0.10")
-import gst
-import gobject
+import gi
+gi.require_version('Gst', '1.0')
+from gi.repository import GObject, Gst
 
 from rgain import GainData, GSTError, util
 
-# Make sure gobject threads don't crash
-gobject.threads_init()
-
-GST_TAG_REFERENCE_LEVEL = "replaygain-reference-level"
+# Make sure GObject threads don't crash
+GObject.threads_init()
 
 def to_utf8(string):
     if isinstance(string, unicode):
@@ -40,7 +37,7 @@ def to_utf8(string):
     else:
         return string.decode("utf-8").encode("utf-8")
 
-class ReplayGain(gobject.GObject):
+class ReplayGain(GObject.GObject):
     
     """Perform a Replay Gain analysis on some files.
     
@@ -51,7 +48,7 @@ class ReplayGain(gobject.GObject):
      - instantiate the class, passing it a list of file names and optionally the
        reference loudness level to use (defaults to 89 dB),
      - connect to the signals the class provides,
-     - get yourself a glib main loop (e.g. ``gobject.MainLoop`` or the one from
+     - get yourself a glib main loop (e.g. ``GObject.MainLoop`` or the one from
        GTK),
      - call ``replaygain_instance.start()`` to start processing,
      - start your main loop to dispatch events and
@@ -64,19 +61,19 @@ class ReplayGain(gobject.GObject):
     """
     
     __gsignals__ = {
-        "all-finished": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-            (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT)),
-        "track-started": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-            (gobject.TYPE_STRING,)),
-        "track-finished": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-            (gobject.TYPE_STRING, gobject.TYPE_PYOBJECT)),
-        "error": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-            (gobject.TYPE_PYOBJECT,)),
+        "all-finished": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+            (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
+        "track-started": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+            (GObject.TYPE_STRING,)),
+        "track-finished": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+            (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
+        "error": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+            (GObject.TYPE_PYOBJECT,)),
     }
     
     
     def __init__(self, files, force=False, ref_lvl=89):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self.files = files
         self.force = force
         self.ref_lvl = ref_lvl
@@ -93,39 +90,39 @@ class ReplayGain(gobject.GObject):
     def start(self):
         """Start processing.
         
-        For it to work correctly, you'll need to run some gobject main loop
+        For it to work correctly, you'll need to run some GObject main loop
         (e.g. the Gtk one) or process any events manually (though I have no
         idea how or if that works).
         """
         if not self._next_file():
             raise ValueError("do never, ever run this thing without any files")
-        self.pipe.set_state(gst.STATE_PLAYING)
+        self.pipe.set_state(Gst.State.PLAYING)
     
     def pause(self, pause):
         if pause:
-            self.pipe.set_state(gst.STATE_PAUSED)
+            self.pipe.set_state(Gst.State.PAUSED)
         else:
-            self.pipe.set_state(gst.STATE_PLAYING)
+            self.pipe.set_state(Gst.State.PLAYING)
     
     def stop(self):
-        self.pipe.set_state(gst.STATE_NULL)
+        self.pipe.set_state(Gst.State.NULL)
     
     
     # internal stuff
     def _setup_pipeline(self):
         """Setup the pipeline."""
-        self.pipe = gst.Pipeline("replaygain")
+        self.pipe = Gst.Pipeline()
         
         # elements
-        self.decbin = gst.element_factory_make("decodebin", "decbin")
+        self.decbin = Gst.ElementFactory.make("decodebin", "decbin")
         self.pipe.add(self.decbin)
-        self.conv = gst.element_factory_make("audioconvert", "conv")
+        self.conv = Gst.ElementFactory.make("audioconvert", "conv")
         self.pipe.add(self.conv)
-        self.res = gst.element_factory_make("audioresample", "res")
+        self.res = Gst.ElementFactory.make("audioresample", "res")
         self.pipe.add(self.res)
-        self.rg = gst.element_factory_make("rganalysis", "rg")
+        self.rg = Gst.ElementFactory.make("rganalysis", "rg")
         self.pipe.add(self.rg)
-        self.sink = gst.element_factory_make("fakesink", "sink")
+        self.sink = Gst.ElementFactory.make("fakesink", "sink")
         self.pipe.add(self.sink)
         
         # Set num-tracks to the number of files we have to process so they're
@@ -133,7 +130,9 @@ class ReplayGain(gobject.GObject):
         self.rg.set_property("num-tracks", len(self.files))
         
         # link
-        gst.element_link_many(self.conv, self.res, self.rg, self.sink)
+        self.conv.link(self.res)
+        self.res.link(self.rg)
+        self.rg.link(self.sink)
         self.decbin.connect("pad-added", self._on_pad_added)
         self.decbin.connect("pad-removed", self._on_pad_removed)
         
@@ -154,8 +153,9 @@ class ReplayGain(gobject.GObject):
         """
         # only when there already is a source
         if hasattr(self, "src"):
-            self.src.unlink(self.decbin)
+        #    self.src.unlink(self.decbin)
             self.pipe.remove(self.src)
+        #    self.src = None
         
         # set the next file
         try:
@@ -165,7 +165,7 @@ class ReplayGain(gobject.GObject):
             return False
         
         # make a new src element
-        self.src = gst.element_factory_make("filesrc", "src")
+        self.src = Gst.ElementFactory.make("filesrc", "src")
         self.src.set_property("location", to_utf8(fname))
         
         self._current_file = fname
@@ -181,27 +181,28 @@ class ReplayGain(gobject.GObject):
         """Process a tag message."""
         tags = msg.parse_tag()
         trackdata = self.track_data.setdefault(self._current_file, GainData(0))
-        
-        # process just every tag
-        for tag in tags.keys():
-            if tag == gst.TAG_TRACK_GAIN:
-                trackdata.gain = tags[tag]
-            elif tag == gst.TAG_TRACK_PEAK:
-                trackdata.peak = tags[tag]
-            elif tag == GST_TAG_REFERENCE_LEVEL:
-                trackdata.ref_level = tags[tag]
+
+        def handle_tag(taglist, tag, userdata):
+            if tag == Gst.TAG_TRACK_GAIN:
+                _, trackdata.gain = taglist.get_double(tag)
+            elif tag == Gst.TAG_TRACK_PEAK:
+                _, trackdata.peak = taglist.get_double(tag)
+            elif tag == Gst.TAG_REFERENCE_LEVEL:
+                _, trackdata.ref_level = taglist.get_double(tag)
             
-            elif tag == gst.TAG_ALBUM_GAIN:
-                self.album_data.gain = tags[tag]
-            elif tag == gst.TAG_ALBUM_PEAK:
-                self.album_data.peak = tags[tag]
+            elif tag == Gst.TAG_ALBUM_GAIN:
+                _, self.album_data.gain = taglist.get_double(tag)
+            elif tag == Gst.TAG_ALBUM_PEAK:
+                _, self.album_data.peak = taglist.get_double(tag)
+        
+        tags.foreach(handle_tag, None)
     
     
     # event handlers
     def _on_pad_added(self, decbin, new_pad):
         try:
             decbin.link(self.conv)
-        except gst.LinkError:
+        except Gst.LinkError:
             # this one didn't work. Hopefully the next try's better
             pass
     
@@ -209,22 +210,20 @@ class ReplayGain(gobject.GObject):
         decbin.unlink(self.conv)
     
     def _on_message(self, bus, msg):
-        if msg.type == gst.MESSAGE_TAG:
-            if not msg.src == self.rg:
-                return
+        if msg.type == Gst.MessageType.TAG:
             self._process_tags(msg)
-        elif msg.type == gst.MESSAGE_EOS:
+        elif msg.type == Gst.MessageType.EOS:
             self.emit("track-finished", to_utf8(self._current_file),
                       self.track_data[self._current_file])
             self.rg.set_locked_state(True)
-            self.pipe.set_state(gst.STATE_NULL)
+            self.pipe.set_state(Gst.State.NULL)
             ret = self._next_file()
             if ret:
                 self.rg.set_locked_state(False)
-                self.pipe.set_state(gst.STATE_PLAYING)
-        elif msg.type == gst.MESSAGE_ERROR:
+                self.pipe.set_state(Gst.State.PLAYING)
+        elif msg.type == Gst.MessageType.ERROR:
             self.rg.set_locked_state(True)
-            self.pipe.set_state(gst.STATE_NULL)
+            self.pipe.set_state(Gst.State.NULL)
             err, debug = msg.parse_error()
             self.emit("error", GSTError(err, debug))
 
@@ -249,7 +248,7 @@ def calculate(*args, **kwargs):
     with util.gobject_signals(rg,
         ("all-finished", on_finished),
         ("error", on_error),):
-        loop = gobject.MainLoop()
+        loop = GObject.MainLoop()
         rg.start()
         loop.run()
     if exc_slot[0] is not None:

@@ -20,8 +20,9 @@ import sys
 from optparse import OptionParser
 import traceback
 
-import pygst
-pygst.require("0.10")
+import gi
+gi.require_version("Gst", "1.0")
+from gi.repository import Gst
 
 import rgain.rgio
 
@@ -68,7 +69,7 @@ def init_gstreamer():
             sys.argv.remove(opt)
             stripped_options.append(opt)
     # Then, pass any remaining options to GStreamer.
-    import gst
+    sys.argv = Gst.init(sys.argv)
     # Finally, restore any help options so optparse can eat them.
     for opt in stripped_options:
         sys.argv.append(opt)
