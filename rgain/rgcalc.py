@@ -206,12 +206,13 @@ class ReplayGain(GObject.GObject):
         elif msg.type == Gst.MessageType.EOS:
             self.emit("track-finished", to_utf8(self._current_file),
                       self.track_data[self._current_file])
+            # Preserve rganalysis state
             self.rg.set_locked_state(True)
-            self.pipe.set_state(Gst.State.NULL)
+            self.pipe.set_state(Gst.State.READY)
             ret = self._next_file()
             if ret:
-                self.rg.set_locked_state(False)
                 self.pipe.set_state(Gst.State.PLAYING)
+            self.rg.set_locked_state(False)
         elif msg.type == Gst.MessageType.ERROR:
             self.pipe.set_state(Gst.State.NULL)
             err, debug = msg.parse_error()
