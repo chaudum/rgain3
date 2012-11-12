@@ -21,16 +21,12 @@ import os.path
 
 from gi.repository import GObject
 
-from rgain import rgio, util
+from rgain import rgcalc, rgio, util
 from rgain.script import ou, un, Error, common_options, init_gstreamer
 
 
 # calculate the gain for the given files
 def calculate_gain(files, ref_level):
-    # this has to be done here since Gstreamer hooks into the command line
-    # arguments if it's imported on module level
-    from rgain import rgcalc
-
     exc_slot = [None]
     
     # handlers
