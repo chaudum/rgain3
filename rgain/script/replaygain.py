@@ -22,7 +22,7 @@ import os.path
 import gobject
 
 from rgain import rgio, util
-from rgain.script import ou, un, Error, common_options
+from rgain.script import ou, un, Error, common_options, init_gstreamer
 
 
 # calculate the gain for the given files
@@ -203,6 +203,7 @@ def rgain_options():
 
 
 def replaygain():
+    init_gstreamer()
     optparser = rgain_options()
     opts, args = optparser.parse_args()
     if not args:

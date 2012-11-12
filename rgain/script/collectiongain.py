@@ -34,7 +34,7 @@ import mutagen
 from mutagen.id3 import TXXX
 
 from rgain import rgio
-from rgain.script import ou, un, Error, common_options
+from rgain.script import ou, un, Error, common_options, init_gstreamer
 from rgain.script.replaygain import do_gain
 
 
@@ -379,6 +379,7 @@ def collectiongain_options():
 
 
 def collectiongain():
+    init_gstreamer()
     optparser = collectiongain_options()
     opts, args = optparser.parse_args()
     if len(args) != 1:

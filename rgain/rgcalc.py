@@ -29,6 +29,9 @@ import gobject
 
 from rgain import GainData, GSTError, util
 
+# Make sure gobject threads don't crash
+gobject.threads_init()
+
 GST_TAG_REFERENCE_LEVEL = "replaygain-reference-level"
 
 def to_utf8(string):
@@ -74,9 +77,6 @@ class ReplayGain(gobject.GObject):
     
     def __init__(self, files, force=False, ref_lvl=89):
         gobject.GObject.__init__(self)
-        # Make sure gobject threads don't crash
-        gobject.threads_init()
-
         self.files = files
         self.force = force
         self.ref_lvl = ref_lvl

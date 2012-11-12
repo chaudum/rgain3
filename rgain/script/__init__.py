@@ -20,6 +20,9 @@ import sys
 from optparse import OptionParser
 import traceback
 
+import pygst
+pygst.require("0.10")
+
 import rgain.rgio
 
 stdout_encoding = sys.stdout.encoding or sys.getfilesystemencoding()
@@ -51,6 +54,26 @@ class Error(Exception):
         return self.exc_info[0] not in [IOError, rgain.rgio.AudioFormatError,
             rgain.GSTError]
 
+def init_gstreamer():
+    """Properly initialise GStreamer for the command-line interfaces.
+
+    Specifically, GStreamer options are parsed and processed by GStreamer, but
+    it is also kept from taking over the main help output (by pretending -h
+    or --help wasn't passed, if necessary). --help-gst should be documented in
+    the main help output as a switch to display GStreamer options."""
+    # Strip any --help options from the command line.
+    stripped_options = []
+    for opt in ["-h", "--help"]:
+        if opt in sys.argv:
+            sys.argv.remove(opt)
+            stripped_options.append(opt)
+    # Then, pass any remaining options to GStreamer.
+    import gst
+    # Finally, restore any help options so optparse can eat them.
+    for opt in stripped_options:
+        sys.argv.append(opt)
+
+
 
 def common_options():
     opts = OptionParser(version="%prog 1.1.1")
@@ -70,6 +93,10 @@ def common_options():
                     "the README or man page for more information.",
                     dest="mp3_format", action="store", type="choice",
                     choices=rgain.rgio.BaseFormatsMap.MP3_DISPLAY_FORMATS)
+    # This option only exists to show up in the help output; if it's actually
+    # specified, GStreamer should eat it.
+    opts.add_option("--help-gst", help="Show GStreamer options.",
+                    dest="help_gst", action="store_true")
     
     opts.set_defaults(force=False, dry_run=False, ref_level=89,
         mp3_format="default")
