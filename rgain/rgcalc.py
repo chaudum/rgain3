@@ -114,6 +114,8 @@ class ReplayGain(GObject.GObject):
         self.pipe = Gst.Pipeline()
         
         # elements
+        self.src = Gst.ElementFactory.make("filesrc", "src")
+        self.pipe.add(self.src)
         self.decbin = Gst.ElementFactory.make("decodebin", "decbin")
         self.pipe.add(self.decbin)
         self.conv = Gst.ElementFactory.make("audioconvert", "conv")
@@ -130,6 +132,7 @@ class ReplayGain(GObject.GObject):
         self.rg.set_property("num-tracks", len(self.files))
         
         # link
+        self.src.link(self.decbin)
         self.conv.link(self.res)
         self.res.link(self.rg)
         self.rg.link(self.sink)
@@ -151,28 +154,16 @@ class ReplayGain(GObject.GObject):
         Returns False if everything is done and the pipeline shouldn't be
         started again; True otherwise.
         """
-        # only when there already is a source
-        if hasattr(self, "src"):
-        #    self.src.unlink(self.decbin)
-            self.pipe.remove(self.src)
-        #    self.src = None
-        
-        # set the next file
+        # get the next file
         try:
             fname = self._files_iter.next()
         except StopIteration:
             self.emit("all-finished", self.track_data, self.album_data)
             return False
         
-        # make a new src element
-        self.src = Gst.ElementFactory.make("filesrc", "src")
+        # point the source to the new file
         self.src.set_property("location", to_utf8(fname))
-        
         self._current_file = fname
-        
-        self.pipe.add(self.src)
-        self.src.link(self.decbin)
-        
         self.emit("track-started", to_utf8(fname))
         
         return True
@@ -222,7 +213,6 @@ class ReplayGain(GObject.GObject):
                 self.rg.set_locked_state(False)
                 self.pipe.set_state(Gst.State.PLAYING)
         elif msg.type == Gst.MessageType.ERROR:
-            self.rg.set_locked_state(True)
             self.pipe.set_state(Gst.State.NULL)
             err, debug = msg.parse_error()
             self.emit("error", GSTError(err, debug))
