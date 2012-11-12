@@ -18,8 +18,6 @@
 
 import contextlib
 
-import gobject
-
 @contextlib.contextmanager
 def gobject_signals(obj, *signals):
     """Context manager to connect and disconnect GObject signals using a ``with``
