@@ -191,14 +191,14 @@ class ReplayGain(GObject.GObject):
     
     # event handlers
     def _on_pad_added(self, decbin, new_pad):
-        try:
-            decbin.link(self.conv)
-        except Gst.LinkError:
-            # this one didn't work. Hopefully the next try's better
-            pass
+        sinkpad = self.conv.get_compatible_pad(new_pad, None)
+        if sinkpad is not None:
+            new_pad.link(sinkpad)
     
     def _on_pad_removed(self, decbin, old_pad):
-        decbin.unlink(self.conv)
+        peer = old_pad.get_peer()
+        if peer is not None:
+            old_pad.unlink(peer)
     
     def _on_message(self, bus, msg):
         if msg.type == Gst.MessageType.TAG:
