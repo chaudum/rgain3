@@ -12,10 +12,15 @@ here, go read it yourself.
 
 Requirements
 ============
- - Python 2.6 -- http://python.org/
+ - Python 2.6 or 2.7 -- http://python.org/
  - Mutagen -- http://code.google.com/p/mutagen/
- - GStreamer 0.10 -- http://gstreamer.org/
- - pygst 0.10 -- http://gstreamer.freedesktop.org/modules/gst-python.html
+ - GStreamer 1.0 -- http://gstreamer.org/
+ - PyGObject -- https://live.gnome.org/PyGObject
+
+To install these dependencies on Debian or Ubuntu (12.10 or newer):
+
+ # apt-get install python python-mutagen python-gi gir1.2-gstreamer-1.0 \
+   libgstreamer1.0-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good
 
 Installation
 ============

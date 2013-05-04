@@ -78,7 +78,7 @@ hand is a kind of fire-and-forget tool for big amounts of music files.
         ("man/collectiongain.rst", "collectiongain.1"),
     ],
     
-    requires=["pygst", "mutagen"],
+    requires=["pygobject", "mutagen"],
     
     cmdclass={"build_manpages": build_manpages},
     distclass=ManpagesDistribution
