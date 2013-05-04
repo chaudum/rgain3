@@ -150,6 +150,15 @@ behaviour. Possible choices with this switch are:
 
 [4] http://code.google.com/p/quodlibet
 
+Changes
+=======
+rgain 1.2
+---------
+- Port to GStreamer 1.0.
+- Support default GStreamer command-line options for **replaygain** and
+  **collectiongain**. All known GStreamer options can be listed by using the
+  **--help-gst** flag.
+
 Copyright
 =========
 With the exception of the manpages, all files are::
