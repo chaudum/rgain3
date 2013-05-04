@@ -208,10 +208,15 @@ class ReplayGain(GObject.GObject):
                       self.track_data[self._current_file])
             # Preserve rganalysis state
             self.rg.set_locked_state(True)
-            self.pipe.set_state(Gst.State.READY)
+            self.pipe.set_state(Gst.State.NULL)
             ret = self._next_file()
             if ret:
                 self.pipe.set_state(Gst.State.PLAYING)
+                # For some reason, GStreamer 1.0's rganalysis element produces
+                # an error here unless a flush has been performed.
+                pad = self.rg.get_static_pad("src")
+                pad.send_event(Gst.Event.new_flush_start())
+                pad.send_event(Gst.Event.new_flush_stop(True))
             self.rg.set_locked_state(False)
         elif msg.type == Gst.MessageType.ERROR:
             self.pipe.set_state(Gst.State.NULL)
