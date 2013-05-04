@@ -16,11 +16,13 @@ Requirements
 - Mutagen -- http://code.google.com/p/mutagen/
 - GStreamer 1.0 -- http://gstreamer.org/
 - PyGObject -- https://live.gnome.org/PyGObject
+- python-docutils for the manpages -- http://docutils.sourceforge.net/
 
 To install these dependencies on Debian or Ubuntu (12.10 or newer)::
 
- # apt-get install python python-mutagen python-gi gir1.2-gstreamer-1.0 \
-   libgstreamer1.0-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+ # apt-get install python python-mutagen python-docutils python-gi \
+   gir1.2-gstreamer-1.0 libgstreamer1.0-0 gstreamer1.0-plugins-base \
+   gstreamer1.0-plugins-good
 
 Installation
 ============
