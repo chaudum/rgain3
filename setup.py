@@ -58,14 +58,14 @@ except ImportError:
 
 setup(
     name="rgain",
-    version="1.1.1",
+    version="1.2",
     description="Multi-format Replay Gain utilities",
     author="Felix Krull",
     author_email="f_krull@gmx.de",
     url="http://bitbucket.org/fk/rgain",
     license="GNU General Public License (v2 or later)",
     classifiers=[
-        "Development Status :: 7 - Inactive",
+        "Development Status :: 6 - Mature",
         "Environment :: Console",
         "Intended Audience :: End Users/Desktop",
         "Intended Audience :: Developers",

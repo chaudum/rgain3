@@ -1,5 +1,5 @@
-rgain 1.1.1 -- ReplayGain tools and Python library
-==================================================
+rgain 1.2 -- ReplayGain tools and Python library
+================================================
 This Python package provides modules to read, write and calculate Replay Gain
 as well as 2 scripts that utilize these modules to do Replay Gain.
 
