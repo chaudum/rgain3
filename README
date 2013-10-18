@@ -1,5 +1,5 @@
-rgain 1.2 -- ReplayGain tools and Python library
-================================================
+rgain 1.2.1 -- ReplayGain tools and Python library
+==================================================
 This Python package provides modules to read, write and calculate Replay Gain
 as well as 2 scripts that utilize these modules to do Replay Gain.
 
@@ -152,6 +152,10 @@ behaviour. Possible choices with this switch are:
 
 Changes
 =======
+rgain 1.2.1 (2013-10-18)
+------------------------
+- Fix issue with reading MP3 reference loudness tags.
+
 rgain 1.2 (2013-05-04)
 ----------------------
 - Port to GStreamer 1.0.
@@ -168,4 +172,4 @@ With the exception of the manpages, all files are::
 The manpages were originally written for the Debian project and are::
 
  Copyright (c) 2011 Simon Chopin <chopin.simon@gmail.com>
- Copyright (c) 2012 Felix Krull <f_krull@gmx.de>
+ Copyright (c) 2012-2013 Felix Krull <f_krull@gmx.de>
