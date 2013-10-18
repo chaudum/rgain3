@@ -120,8 +120,9 @@ def mp3_legacy_read_gain(filename):
             # Read all supported reference loudness tags, using the first that
             # exists.
             for t in REFERENCE_LOUDNESS_TAGS:
-                if t in ("TXXX:%s" % t for t in tags):
-                    gaindata.ref_level = parse_db(tags[t].text[0])
+                full_tag = "TXXX:%s" % t
+                if full_tag in tags:
+                    gaindata.ref_level = parse_db(tags[full_tag].text[0])
                     break
         else:
             gaindata = None
