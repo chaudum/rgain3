@@ -236,9 +236,10 @@ def do_gain_async(queue, job_key, files, ref_level, force, dry_run, album,
                 print ou(u"%s:" % job_key[1]),
             do_gain(files, ref_level, force, dry_run, album, mp3_format)
             print
-    except Exception, exc:
+    except BaseException, exc:
         # We can't reliably serialise and pass the exception information to the
         # driver process so we stringify it here.
+        # And yes, we want to catch KeyboardInterrupt et al.
         queue.put((job_key, output.getvalue(), unicode(exc)))
     else:
         queue.put((job_key, output.getvalue(), None))
