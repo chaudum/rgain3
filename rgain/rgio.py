@@ -317,14 +317,13 @@ class BaseFormatsMap(object):
             self.more_mappings[".mp3"] = self.MP3_FORMATS[mp3_format]
         else:
             raise ValueError("invalid MP3 format %r" % mp3_format)
-    
-    @property
-    def supported_formats(self):
-        return (set(self.BASE_MAP.iterkeys()) |
-                set(self.more_mappings.iterkeys()))
+
+    def is_supported_format(self, ext):
+        ext_lower = ext.lower()
+        return ext_lower in self.BASE_MAP or ext_lower in self.more_mappings
     
     def read_gain(self, filename):
-        ext = os.path.splitext(filename)[1]
+        ext = os.path.splitext(filename)[1].lower()
         if ext in self.more_mappings:
             accessor = self.more_mappings[ext]
         elif ext in self.BASE_MAP:
@@ -335,7 +334,7 @@ class BaseFormatsMap(object):
         return accessor[0](filename)
     
     def write_gain(self, filename, trackgain, albumgain):
-        ext = os.path.splitext(filename)[1]
+        ext = os.path.splitext(filename)[1].lower()
         if ext in self.more_mappings:
             accessor = self.more_mappings[ext]
         elif ext in self.BASE_MAP:

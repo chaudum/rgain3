@@ -70,7 +70,7 @@ def do_gain(files, ref_level=89, force=False, dry_run=False, album=True,
     
     newfiles = []
     for filename in files:
-        if not os.path.splitext(filename)[1] in formats_map.supported_formats:
+        if not formats_map.is_supported_format(os.path.splitext(filename)[1]):
             print ou(u"%s: not supported, ignoring it" % filename)
         else:
             newfiles.append(filename)

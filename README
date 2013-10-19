@@ -156,6 +156,7 @@ rgain 1.2.2 (UNRELEASED)
 ------------------------
 - Work around a bug in some pygobject 3.10 releases
   (https://bugzilla.gnome.org/show_bug.cgi?id=710447)
+- Properly recognise file extensions even with different capitalisation.
 
 rgain 1.2.1 (2013-10-18)
 ------------------------

@@ -157,7 +157,7 @@ def get_album_id(music_dir, filepath):
     return album_id
 
 
-def collect_files(music_dir, files, cache, supported_formats):
+def collect_files(music_dir, files, cache, is_supported_format):
     i = 0
     for dirpath, dirnames, filenames in os.walk(music_dir):
         for filename in filenames:
@@ -175,7 +175,7 @@ def collect_files(music_dir, files, cache, supported_formats):
                     continue
 
             ext = os.path.splitext(filename)[1]
-            if ext in supported_formats:
+            if is_supported_format(ext):
                 i += 1
                 print ou(u"  [%i] %s |" % (i, filepath)),
                 album_id = get_album_id(music_dir, filepath)
@@ -325,7 +325,7 @@ def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
     # cache is written to disk so all progress persists
     try:
         collect_files(music_dir, files, cache,
-                      rgio.BaseFormatsMap(mp3_format).supported_formats)
+                      rgio.BaseFormatsMap(mp3_format).is_supported_format)
         # clean cache
         for filepath, visited in cache.items():
             if not visited:
