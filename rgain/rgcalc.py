@@ -28,8 +28,17 @@ from gi.repository import GObject, Gst
 
 from rgain import GainData, GSTError, util
 
-# Make sure GObject threads don't crash
+# Initialise threading.
 GObject.threads_init()
+# Also initialise threading. This hack is necessary because while threads_init
+# was originally deprecated in pygobject 3.10 and turned into a no-op, that
+# wouldn't initialise Python threading properly when an introspection-loaded
+# library used threading, but the Python program didn't (see
+# https://bugzilla.gnome.org/show_bug.cgi?id=710447). Therefore, we create a
+# dummy thread to force Python to initialise threading to accomodate these
+# broken pygobject versions.
+import threading
+threading.Thread(target=lambda: None).start()
 
 def to_utf8(string):
     if isinstance(string, unicode):
