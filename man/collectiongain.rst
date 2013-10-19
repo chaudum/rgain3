@@ -22,8 +22,8 @@ DESCRIPTION
 ===========
 
 **collectiongain** is a script calculating the Replay Gain values of a large set of
-music files inside *music_dir*. Each audio file will be rectified against the
-other files of the same album, which are identified using the file tags.
+music files inside *music_dir*. Files belonging to the same album will be identified
+using the file tags and album Replay Gain data will be calculated for them.
 
 OPTIONS
 =======

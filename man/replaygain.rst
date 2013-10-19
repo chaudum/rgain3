@@ -21,7 +21,9 @@ SYNOPSIS
 DESCRIPTION
 ===========
 
-**replaygain** applies or displays Replay Gain information for audio files.
+**replaygain** applies or displays Replay Gain information for audio files. By
+default, all given files be assumed to be part of a single album and album gain
+data will be calculated for them.
 
 OPTIONS
 =======
