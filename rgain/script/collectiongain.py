@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2009-2012 Felix Krull <f_krull@gmx.de>
+# Copyright (c) 2009-2013 Felix Krull <f_krull@gmx.de>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,10 +33,11 @@ except ImportError:
 import mutagen
 from mutagen.id3 import TXXX
 
-from rgain import rgio
+from rgain import albumid, rgio
 from rgain.script import ou, un, Error, common_options, init_gstreamer
 from rgain.script.replaygain import do_gain
 
+CURRENT_CACHE_VERSION = 1
 
 # all of collectiongain
 def relpath(path, base):
@@ -46,117 +47,60 @@ def relpath(path, base):
         size += 1
     return path[size:]
 
+def cache_entry_valid(filepath, record):
+    return (
+        isinstance(filepath, basestring)
+        and hasattr(record, "__getitem__")
+        and hasattr(record, "__len__")
+        and len(record) == 3
+        and (isinstance(record[0], basestring)
+             or record[0] is None)
+        and (isinstance(record[1], int)
+             or isinstance(record[1], float))
+        and isinstance(record[2], bool))
 
 def read_cache(cache_file):
-    files = {}
     if os.path.isfile(cache_file):
         try:
-            f = open(cache_file, "rb")
-            files = pickle.load(f)
+            with open(cache_file, "rb") as f:
+                cache = pickle.load(f)
+                if not isinstance(cache, tuple) or len(cache) != 2:
+                    print ou(u"Invalid cache, ignoring it")
+                    return {}
+                cache_version = cache[0]
+                if cache_version != CURRENT_CACHE_VERSION:
+                    print ou(u"Old cache format, ignoring it")
+                    return {}
+                files = cache[1]
+                if not isinstance(files, dict):
+                    print ou(u"Invalid cache, ignoring it")
+                    return {}
+                to_remove = set()
+                for filepath, record in files.iteritems():
+                    if not cache_entry_valid(filepath, record):
+                        to_remove.add(filepath)
+                for filepath in to_remove:
+                    # remove fishy entries
+                    del files[filepath]
+                return files
         except Exception, exc:
-            print ou(u"Error while reading the cache - %s" % exc)
-        finally:
-            try:
-                f.close()
-            except NameError:
-                pass
-
-    return files
-
+            print ou(u"Error while reading the cache, continuing without it - "
+                     u"%s" % exc)
+    
+    return {}
 
 def write_cache(cache_file, files):
     cache_dir = os.path.dirname(cache_file)
-
     try:
         if not os.path.isdir(cache_dir):
             os.makedirs(cache_dir, 0755)
-        f = open(cache_file, "wb")
-        pickle.dump(files, f, 2)
+        with open(cache_file, "wb") as f:
+            pickle.dump((CURRENT_CACHE_VERSION, files), f, 2)
     except Exception, exc:
         print ou(u"Error while writing the cache - %s" % exc)
-    finally:
-        try:
-            f.close()
-        except NameError:
-            pass
 
 
-def validate_cache(files):
-    for filepath, record in files.items():
-        if (isinstance(filepath, basestring) and
-            hasattr(record, "__getitem__") and
-            hasattr(record, "__len__") and
-            len(record) == 3 and
-            (isinstance(record[0], basestring) or
-             record[0] is None) and
-            (isinstance(record[1], int) or
-             isinstance(record[1], float)) and
-            isinstance(record[2], bool)
-        ):
-            continue
-        else:
-            # funny record, purge it
-            del files[filepath]
-
-
-def get_album_id(music_dir, filepath):
-    properpath = os.path.join(music_dir, filepath)
-    ext = os.path.splitext(filepath)[1]
-    try:
-        tags = mutagen.File(properpath)
-    except Exception, exc:
-        raise Error(u"%s: %s" % (filepath, exc))
-
-    album_id = None
-    if ext == ".mp3":
-        for frame in tags.itervalues():
-            if isinstance(frame, TXXX) and frame.desc == "MusicBrainz Album Id":
-                album_id = frame.text[0]
-                break
-    else:
-        try:
-            album_id = tags.get("musicbrainz_albumid")[0]
-        except TypeError:
-            pass
-
-    if album_id is not None:
-        return album_id
-
-    if ext == ".mp3":
-        if "TALB" in tags:
-            album = tags["TALB"].text[0]
-        else:
-            album = None
-    else:
-        album = tags.get("album", [""])[0]
-
-    if album:
-        if ext == ".mp3":
-            artist = None
-            for frame in tags.itervalues():
-                if isinstance(frame, TXXX) and "albumartist" in frame.desc:
-                    # these heuristics are a bit fragile
-                    artist = frame.text[0]
-                    break
-            if not artist:
-                # TODO: is this correct?
-                if "TPE1" in tags:
-                    artist = tags["TPE1"].text[0]
-        else:
-            artist = tags.get("albumartist") or tags.get("artist")
-            if artist:
-                artist = artist[0]
-
-        if not artist:
-            artist = u""
-        album_id = u"%s - %s" % (artist, album)
-    else:
-        album_id = None
-
-    return album_id
-
-
-def collect_files(music_dir, files, cache, is_supported_format):
+def collect_files(music_dir, files, visited_cache, is_supported_format):
     i = 0
     for dirpath, dirnames, filenames in os.walk(music_dir):
         for filename in filenames:
@@ -166,8 +110,8 @@ def collect_files(music_dir, files, cache, is_supported_format):
             mtime = os.path.getmtime(properpath)
 
             # check the cache
-            if filepath in cache:
-                cache[filepath] = True
+            if filepath in visited_cache:
+                visited_cache[filepath] = True
                 record = files[filepath]
                 if mtime <= record[1]:
                     # the file's still ok
@@ -177,14 +121,19 @@ def collect_files(music_dir, files, cache, is_supported_format):
             if is_supported_format(ext):
                 i += 1
                 print ou(u"  [%i] %s |" % (i, filepath)),
-                album_id = get_album_id(music_dir, filepath)
+                try:
+                    tags = mutagen.File(os.path.join(music_dir, filepath))
+                    album_id = albumid.get_album_id(tags)
+                except Exception, exc:
+                    # TODO: Maybe just give an error and proceed? Maybe an option.
+                    raise Error(u"%s: %s" % (filepath, exc))
                 print ou(album_id or u"<single track>")
                 # fields here: album_id, mtime, already_processed
                 files[filepath] = (album_id, mtime, False)
 
 
 def transform_cache(files):
-    # transform ``files`` into a usable data structure
+    # transform ``files`` into lists of things to process
     albums = {}
     single_tracks = []
     for filepath, (album_id, mtime, processed) in files.iteritems():
@@ -317,24 +266,20 @@ def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
     else:
         files = {}
 
-    # yeah, side-effects are bad, I know
-    validate_cache(files)
-    cache = dict.fromkeys(files.iterkeys(), False)
-
     print "Collecting files ..."
-
     # whenever this part is stopped (KeyboardInterrupt/other exception), the
     # cache is written to disk so all progress persists
     try:
-        collect_files(music_dir, files, cache,
+        visited_cache = dict.fromkeys(files.iterkeys(), False)
+        collect_files(music_dir, files, visited_cache,
                       rgio.BaseFormatsMap(mp3_format).is_supported_format)
         # clean cache
-        for filepath, visited in cache.items():
+        for filepath, visited in visited_cache.items():
             if not visited:
-                del cache[filepath]
+                del visited_cache[filepath]
                 del files[filepath]
         # hopefully gets rid of at least one huge data structure
-        del cache
+        del visited_cache
 
         albums, single_tracks = transform_cache(files)
 
@@ -342,7 +287,6 @@ def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
         do_gain_all(music_dir, albums, single_tracks, files, ref_level, force,
                   dry_run, mp3_format, jobs)
     finally:
-        validate_cache(files)
         write_cache(cache_file, files)
 
     print "All finished."
