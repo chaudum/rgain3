@@ -49,8 +49,10 @@ OPTIONS
     not necessary to mess with this setting. See below for more information.
 
 --ignore-cache
-    Don't trust implicit assumptions about what was already done, instead check
-    all files for Replay Gain data explicitly.
+    Do not use the file cache at all.
+
+--regain
+    Fully reprocess everything. Same as ``--force --ignore-cache``.
 
 -j JOBS, --jobs=JOBS
     Run JOBS jobs simultaneously. Must be >= 1. By default, this is set to the

@@ -48,9 +48,8 @@ def relpath(path, base):
 
 
 def read_cache(cache_file):
-    if not os.path.isfile(cache_file):
-        files = {}
-    else:
+    files = {}
+    if os.path.isfile(cache_file):
         try:
             f = open(cache_file, "rb")
             files = pickle.load(f)
@@ -184,7 +183,7 @@ def collect_files(music_dir, files, cache, is_supported_format):
                 files[filepath] = (album_id, mtime, False)
 
 
-def transform_cache(files, ignore_cache=False):
+def transform_cache(files):
     # transform ``files`` into a usable data structure
     albums = {}
     single_tracks = []
@@ -194,20 +193,19 @@ def transform_cache(files, ignore_cache=False):
         else:
             single_tracks.append(filepath)
 
-    # purge anything that's marked as processed, if desired
-    if not ignore_cache:
-        for album_id, album_files in albums.items():
-            keep = False
-            for filepath in album_files:
-                if not files[filepath][2]:
-                    keep = True
-                    break
-            if not keep:
-                del albums[album_id]
+    # purge anything that's marked as processed
+    for album_id, album_files in albums.items():
+        keep = False
+        for filepath in album_files:
+            if not files[filepath][2]:
+                keep = True
+                break
+        if not keep:
+            del albums[album_id]
 
-        for filepath in single_tracks[:]:
-            if files[filepath][2]:
-                single_tracks.remove(filepath)
+    for filepath in single_tracks[:]:
+        if files[filepath][2]:
+            single_tracks.remove(filepath)
 
     return albums, single_tracks
 
@@ -312,8 +310,11 @@ def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
     cache_file = os.path.join(os.path.expanduser("~"), ".cache",
                               "collectiongain-cache.%s" % musicpath_hash)
 
-    # load the cache
-    files = read_cache(cache_file)
+    # load the cache, if desired
+    if not ignore_cache:
+        files = read_cache(cache_file)
+    else:
+        files = {}
 
     # yeah, side-effects are bad, I know
     validate_cache(files)
@@ -334,7 +335,7 @@ def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
         # hopefully gets rid of at least one huge data structure
         del cache
 
-        albums, single_tracks = transform_cache(files, ignore_cache)
+        albums, single_tracks = transform_cache(files)
 
         # gain everything that has survived the cleansing
         do_gain_all(music_dir, albums, single_tracks, files, ref_level, force,
@@ -349,10 +350,11 @@ def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
 def collectiongain_options():
     opts = common_options()
 
-    opts.add_option("--ignore-cache", help="Don't trust implicit assumptions "
-                    "about what was already done, instead check all files for "
-                    "Replay Gain data explicitly.", dest="ignore_cache",
-                    action="store_true")
+    opts.add_option("--ignore-cache", help="Do not use the file cache at all.",
+                    dest="ignore_cache", action="store_true")
+    opts.add_option("--regain", help="Fully reprocess everything. Same as "
+                    "'--force --ignore-cache'.",
+                    dest="regain", action="store_true")
     opts.add_option("-j", "--jobs", help="Specifies the number of jobs to run "
                     "simultaneously. Must be >= 1. By default, this is set to "
                     "the number of CPU cores in the system to provide best "
@@ -386,6 +388,8 @@ def collectiongain():
         optparser.error("pass one directory path")
     if opts.jobs is not None and opts.jobs < 1:
         optparser.error("jobs must be at least 1")
+    if opts.regain:
+        opts.force = opts.ignore_cache = True
     
     try:
         do_collectiongain(args[0], opts.ref_level, opts.force, opts.dry_run,
