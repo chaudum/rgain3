@@ -58,7 +58,7 @@ except ImportError:
 
 setup(
     name="rgain",
-    version="1.2.1",
+    version="1.3",
     description="Multi-format Replay Gain utilities",
     author="Felix Krull",
     author_email="f_krull@gmx.de",

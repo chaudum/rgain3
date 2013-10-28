@@ -1,5 +1,5 @@
-rgain 1.2.1 -- ReplayGain tools and Python library
-==================================================
+rgain 1.3 -- ReplayGain tools and Python library
+================================================
 This Python package provides modules to read, write and calculate Replay Gain
 as well as 2 scripts that utilize these modules to do Replay Gain.
 
@@ -153,8 +153,8 @@ behaviour. Possible choices with this switch are:
 
 Changes
 =======
-rgain 1.2.2 (UNRELEASED)
-------------------------
+rgain 1.3 (2013-10-28)
+----------------------
 - Work around a bug in some pygobject 3.10 releases
   (https://bugzilla.gnome.org/show_bug.cgi?id=710447)
 - Properly recognise file extensions even with different capitalisation.
@@ -162,6 +162,7 @@ rgain 1.2.2 (UNRELEASED)
   belong to an album and, conversely, not mis-grouping files. Note that this
   change will invalidate any cache files you might still have so your entire
   collection will be re-scanned next time you run **collectiongain**.
+- Assorted bug fixes.
 
 rgain 1.2.1 (2013-10-18)
 ------------------------

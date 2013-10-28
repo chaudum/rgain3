@@ -6,8 +6,8 @@
  single file Replay Gain editor
 --------------------------------
 
-:Date:   2011-11-26
-:Version: 1.2.1
+:Date:   2013-10-28
+:Version: 1.3
 :Manual section: 1
 :Manual group: rgain
 
