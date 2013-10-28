@@ -123,14 +123,15 @@ def collect_files(music_dir, files, visited_cache, is_supported_format):
                 print ou(u"  [%i] %s |" % (i, filepath)),
                 try:
                     tags = mutagen.File(os.path.join(music_dir, filepath))
+                    if tags is None:
+                        raise Exception()
                     album_id = albumid.get_album_id(tags)
-                except Exception, exc:
-                    # TODO: Maybe just give an error and proceed? Maybe an option.
-                    raise Error(u"%s: %s" % (filepath, exc))
-                print ou(album_id or u"<single track>")
-                # fields here: album_id, mtime, already_processed
-                files[filepath] = (album_id, mtime, False)
-
+                    print ou(album_id or u"<single track>")
+                    # fields here: album_id, mtime, already_processed
+                    files[filepath] = (album_id, mtime, False)
+                except:
+                    # TODO: Maybe optionally abort here?
+                    print ou(u"IGNORED: unreadable file or unsupported format")
 
 def transform_cache(files):
     # transform ``files`` into lists of things to process
