@@ -77,7 +77,7 @@ def init_gstreamer():
 
 
 def common_options():
-    opts = OptionParser(version="%prog 1.3")
+    opts = OptionParser(version="%prog 1.3.1")
     
     opts.add_option("-f", "--force", help="Recalculate Replay Gain even if the "
                     "file already contains gain information.", dest="force",
