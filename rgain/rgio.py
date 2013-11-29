@@ -16,13 +16,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from itertools import combinations
+from itertools import chain, combinations
 import os.path
 import warnings
 
 import mutagen
-from mutagen.id3 import ID3, RVA2, TXXX
-from mutagen.apev2 import APEv2File
+from mutagen.easyid3 import EasyID3
 
 from rgain import GainData
 
@@ -31,6 +30,8 @@ class AudioFormatError(Exception):
     def __init__(self, filename):
         Exception.__init__(self, u"Did not understand file: %s" % filename)
 
+
+# some generic helper functions
 def parse_db(string):
     string = string.strip()
     if string.lower().endswith("db"):
@@ -55,14 +56,44 @@ def almost_equal(a, b, epsilon):
         return False
     return abs(a - b) <= epsilon
 
-# basic tag-based reader/writer, suited for Ogg (Vorbis, Flac, Speex, ...) and
-# Flac files at least (also WavPack it seems)
-def read_gain(filename, track_gain_tag, album_gain_tag, track_peak_tag, album_peak_tag, reference_loudness_tag=None):
-    tags = mutagen.File(filename)
-    if tags is None:
-        raise AudioFormatError(filename)
 
-    def read_gain_data(gain_tag, peak_tag):
+# interface for ReplayGain reading/writing class
+class BaseTagReaderWriter(object):
+    def read_gain(self, filename):
+        raise NotImplementedError
+
+    def write_gain(self, filename, track_gain, album_gain):
+        raise NotImplementedError
+
+# class to read and write ReplayGain data from/to simple tags. The default tags
+# match the rg.org specification for Ogg (at least Vorbis), Flac and WavPack
+# files
+class SimpleTagReaderWriter(BaseTagReaderWriter):
+    TRACK_GAIN_TAG = u"replaygain_track_gain"
+    ALBUM_GAIN_TAG = u"replaygain_track_peak"
+    TRACK_PEAK_TAG = u"replaygain_album_gain"
+    ALBUM_PEAK_TAG = u"replaygain_album_peak"
+    REF_LOUDNESS_TAGS = [u"replaygain_reference_loudness"]
+
+    # default behaviour; override in a subclass if necessary, e.g. for MP3
+    def _get_tags_object(self, filename):
+        return mutagen.File(filename)
+
+    def read_gain(self, filename):
+        tags = self._get_tags_object(filename)
+        if tags is None:
+            raise AudioFormatError(filename)
+
+        track_gain = self._read_gain_data(tags, self.TRACK_GAIN_TAG,
+                                          self.TRACK_PEAK_TAG)
+        album_gain = self._read_gain_data(tags, self.ALBUM_GAIN_TAG,
+                                          self.ALBUM_PEAK_TAG)
+        ref_level = self._read_ref_loudness(tags)
+        if ref_level is not None:
+            track_gain.ref_level = album_gain.ref_level = ref_level
+        return track_gain, album_gain
+
+    def _read_gain_data(self, tags, gain_tag, peak_tag):
         if gain_tag in tags:
             gain = parse_db(tags[gain_tag][0])
             if gain is None:
@@ -72,189 +103,189 @@ def read_gain(filename, track_gain_tag, album_gain_tag, track_peak_tag, album_pe
                 peak = parse_peak(tags[peak_tag][0])
                 if peak is not None:
                     gaindata.peak = peak
-            if reference_loudness_tag is not None and reference_loudness_tag in tags:
-                ref_level = parse_db(tags[reference_loudness_tag][0])
+        else:
+            gaindata = None
+        return gaindata
+
+    def _read_ref_loudness(self, tags):
+        for tag in self.REF_LOUDNESS_TAGS:
+            if tag in tags:
+                ref_level = parse_db(tags[tag][0])
                 if ref_level is not None:
-                    gaindata.ref_level = ref_level
-        else:
-            gaindata = None
-        return gaindata
+                    return ref_level
+        return None
+
+    def write_gain(self, filename, track_gain, album_gain):
+        tags = self._get_tags_object(filename)
+        if tags is None:
+            raise AudioFormatError(filename)
+
+        if track_gain:
+            tags[self.TRACK_GAIN_TAG] = self._dump_gain(track_gain.gain)
+            tags[self.TRACK_PEAK_TAG] = self._dump_peak(track_gain.peak)
+            for tag in self.REF_LOUDNESS_TAGS:
+                tags[tag] = self._dump_ref_level(track_gain.ref_level)
+
+        if album_gain:
+            tags[self.ALBUM_GAIN_TAG] = self._dump_gain(album_gain.gain)
+            tags[self.ALBUM_PEAK_TAG] = self._dump_peak(album_gain.peak)
+
+        tags.save()
+
+    def _dump_gain(self, gain):
+        return u"%.8f dB" % gain
+
+    def _dump_peak(self, peak):
+        return u"%.8f" % peak
+
+    def _dump_ref_level(self, ref_level):
+        return u"%i dB" % ref_level
+
+# MP4 support
+class MP4TagReaderWriter(SimpleTagReaderWriter):
+    FORMAT = "----:com.apple.iTunes:replaygain_%s_%s"
+    TRACK_GAIN_TAG = FORMAT % ("track", "gain")
+    TRACK_PEAK_TAG = FORMAT % ("track", "peak")
+    ALBUM_GAIN_TAG = FORMAT % ("album", "gain")
+    ALBUM_PEAK_TAG = FORMAT % ("album", "peak")
+    REF_LOUDNESS_TAGS = []
+
+    # Mutagen 1.22 has a bug (?) such that MP4 values cannot be unicode objects
+    # so we encode everything to ASCII here
+    # https://code.google.com/p/mutagen/issues/detail?id=164
+    def _dump_gain(self, gain):
+        return SimpleTagReaderWriter._dump_gain(self, gain).encode("ascii")
+
+    def _dump_peak(self, peak):
+        return SimpleTagReaderWriter._dump_peak(self, peak).encode("ascii")
+
+    def _dump_ref_level(self, ref_level):
+        return SimpleTagReaderWriter._dump_ref_level(self, ref_level).encode("ascii")
+
+
+# MP3 support base class
+class MP3TagReaderWriter(SimpleTagReaderWriter):
+    _EXTRA_TXXX_TAGS = [
+        u"replaygain_track_gain",
+        u"replaygain_track_peak",
+        u"replaygain_album_gain",
+        u"replaygain_album_peak",
+        u"replaygain_reference_loudness",
+        u"QuodLibet::replaygain_reference_loudness",
+    ]
     
-    return read_gain_data(track_gain_tag, track_peak_tag), read_gain_data(album_gain_tag, album_peak_tag)
+    class _ReplaygainEasyID3(EasyID3):
+        pass
 
-def write_gain(filename, trackdata, albumdata, track_gain_tag, album_gain_tag, track_peak_tag, album_peak_tag, reference_loudness_tag=None):
-    tags = mutagen.File(filename)
-    if tags is None:
-        raise AudioFormatError(filename)
+    for key in _EXTRA_TXXX_TAGS:
+        _ReplaygainEasyID3.RegisterTXXXKey(u"TXXX:%s" % key, key)
 
-    
-    if trackdata:
-        tags[track_gain_tag] = "%.8f dB" % trackdata.gain
-        tags[track_peak_tag] = "%.8f" % trackdata.peak
-        if reference_loudness_tag:
-            tags[reference_loudness_tag] = "%i dB" % trackdata.ref_level
-    
-    if albumdata:
-        tags[album_gain_tag] = "%.8f dB" % albumdata.gain
-        tags[album_peak_tag] = "%.8f" % albumdata.peak
-    
-    tags.save()
-
-def rg_read_gain(filename):
-    format = u"replaygain_%s_%s"
-    return read_gain(filename, format % ("track", "gain"), format % ("album", "gain"), format % ("track", "peak"), format % ("album", "peak"), u"replaygain_reference_loudness")
-
-def rg_write_gain(filename, trackdata, albumdata):
-    format = u"replaygain_%s_%s"
-    return write_gain(filename, trackdata, albumdata, format % ("track", "gain"), format % ("album", "gain"), format % ("track", "peak"), format % ("album", "peak"), u"replaygain_reference_loudness")
-
-
-def mp4_read_gain(filename):
-    format = u"----:com.apple.iTunes:replaygain_%s_%s"
-    return read_gain(filename, format % ("track", "gain"), format % ("album", "gain"), format % ("track", "peak"), format % ("album", "peak"))
-
-def mp4_write_gain(filename, trackdata, albumdata):
-    format = u"----:com.apple.iTunes:replaygain_%s_%s"
-    return write_gain(filename, trackdata, albumdata, format % ("track", "gain"), format % ("album", "gain"), format % ("track", "peak"), format % ("album", "peak"))
-    
-
-# ID3v2 support for legacy RVA2-frames-based format according to
-# http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2
-REFERENCE_LOUDNESS_TAGS = [u"replaygain_reference_loudness",
-                           u"QuodLibet::replaygain_reference_loudness"]
-
-def mp3_legacy_read_gain(filename):
-    tags = ID3(filename)
-    if tags is None:
-        raise AudioFormatError(filename)
-    
-    def read_gain_data(desc):
-        tag = u"RVA2:%s" % desc
-        if tag in tags:
-            frame = tags[tag]
-            gaindata = GainData(frame.gain, frame.peak)
-
-            # Read all supported reference loudness tags, using the first that
-            # exists.
-            for t in REFERENCE_LOUDNESS_TAGS:
-                full_tag = "TXXX:%s" % t
-                if full_tag in tags:
-                    gaindata.ref_level = parse_db(tags[full_tag].text[0])
-                    break
-        else:
-            gaindata = None
-        return gaindata
-    
-    return read_gain_data("track"), read_gain_data("album")
-
-def clamp_rva2_gain(v):
-	clamped = False
-	if v < -64:
-		v = -64
-		clamped = True
-	if v >= 64:
-		v = float(64 * 512 - 1) / 512.0
-		clamped = True
-	if clamped:
-		warnings.warn("gain value was out of bounds for RVA2 frame and was clamped to %.2f" % v)
-	return v
-
-# I'm not sure if this situation could even reasonably happen, but
-# can't hurt to check, right? Right!?
-def clamp_rva2_peak(v):
-	clamped = False
-	if v < 0:
-		v = 0
-		clamped = True
-	if v >= 2:
-		v = float(2**16 - 1) / float(2**15)
-		clamped = True
-	if clamped:
-		warnings.warn("peak value was out of bounds for RVA2 frame and was clamped to %.5f" % v)
-	return v
-
-def mp3_legacy_write_gain(filename, trackdata, albumdata):
-    tags = ID3(filename)
-    if tags is None:
-        raise AudioFormatError(filename)
-    
-    if trackdata:
-        trackgain = RVA2(desc=u"track", channel=1,
-						 gain=clamp_rva2_gain(trackdata.gain),
-                         peak=clamp_rva2_peak(trackdata.peak))
-        tags.add(trackgain)
-        # write reference loudness tags
-        for t in REFERENCE_LOUDNESS_TAGS:
-            reflevel = TXXX(encoding=3, desc=t,
-                            text=[u"%i dB" % trackdata.ref_level])
-            tags.add(reflevel)
-    if albumdata:
-        albumgain = RVA2(desc=u"album", channel=1,
-						 gain=clamp_rva2_gain(albumdata.gain),
-                         peak=clamp_rva2_peak(albumdata.peak))
-        tags.add(albumgain)
-    
-    tags.save()
+    def _get_tags_object(self, filename):
+        return self._ReplaygainEasyID3(filename)
 
 
 # ID3v2 support for TXXX:replaygain_* frames as specified in
 # http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2
 # and as implemented by at least foobar2000.
-def mp3_rgorg_read_gain(filename):
-    tags = ID3(filename)
-    if tags is None:
-        raise AudioFormatError(filename)
-    
-    def read_gain_data(desc):
-        gain_tag = u"TXXX:replaygain_%s_gain" % desc
-        peak_tag = u"TXXX:replaygain_%s_peak" % desc
-        if gain_tag in tags:
-            gain = parse_db(tags[gain_tag].text[0])
-            if gain is None:
-                return None
-            gaindata = GainData(gain)
-            if peak_tag in tags:
-                peak = parse_peak(tags[peak_tag].text[0])
-                if peak is not None:
-                    gaindata.peak = peak
-            if u"TXXX:replaygain_reference_loudness" in tags:
-                ref_level = parse_db(tags[
-                    u"TXXX:replaygain_reference_loudness"
-                ].text[0])
-                if ref_level is not None:
-                    gaindata.ref_level = ref_level
-        else:
-            gaindata = None
-        return gaindata
-    
-    return read_gain_data("track"), read_gain_data("album")
+class MP3rgorgTagReaderWriter(MP3TagReaderWriter):
+    TRACK_GAIN_TAG = u"TXXX:replaygain_track_gain"
+    TRACK_PEAK_TAG = u"TXXX:replaygain_track_peak"
+    ALBUM_GAIN_TAG = u"TXXX:replaygain_album_gain"
+    ALBUM_PEAK_TAG = u"TXXX:replaygain_album_peak"
+    REF_LOUDNESS_TAGS = [u"TXXX:replaygain_reference_loudness"]
 
-def mp3_rgorg_write_gain(filename, trackdata, albumdata):
-    tags = ID3(filename)
-    if tags is None:
-        raise AudioFormatError(filename)
-    
-    def write_gain_data(desc, gaindata):
-        gain_frame = TXXX(encoding=3, desc=u"replaygain_%s_gain" % desc,
-                          text=[u"%.8f dB" % gaindata.gain])
-        tags.add(gain_frame)
-        peak_frame = TXXX(encoding=3, desc=u"replaygain_%s_peak" % desc,
-                          text=[u"%.8f" % gaindata.peak])
-        tags.add(peak_frame)
-    
-    if trackdata:
-        write_gain_data("track", trackdata)
-        tags.add(TXXX(encoding=3, desc=u"replaygain_reference_loudness",
-                      text=[u"%i dB" % trackdata.ref_level]))
-    if albumdata:
-        write_gain_data("album", albumdata)
-    
-    tags.save()
+
+# clamp RVA2 values to certain limits so that they do not overflow
+RVA2_GAIN_MIN = -64
+RVA2_GAIN_MAX = float(64 * 512 - 1) / 512.0
+RVA2_PEAK_MIN = 0
+RVA2_PEAK_MAX = float(2**16 - 1) / float(2**15)
+
+def clamp(v, min, max):
+    clamped = False
+    if v < min:
+        v = min
+        clamped = True
+    if v > max:
+        v = max
+        clamped = True
+    return v, clamped
+
+def clamp_rva2_gain(v):
+    v, clamped = clamp(v, RVA2_GAIN_MIN, RVA2_GAIN_MAX)
+    if clamped:
+        warnings.warn("gain value was out of bounds for RVA2 frame and was clamped to %.2f" % v)
+    return v
+
+# I'm not sure if this situation could even reasonably happen, but
+# can't hurt to check, right? Right!?
+def clamp_rva2_peak(v):
+    v, clamped = clamp(v, RVA2_PEAK_MIN, RVA2_PEAK_MAX)
+    if clamped:
+        warnings.warn("peak value was out of bounds for RVA2 frame and was clamped to %.5f" % v)
+    return v
+
+def clamp_gain_data(gain_data):
+    if gain_data is None:
+        return None
+    else:
+        return GainData(clamp_rva2_gain(gain_data.gain),
+                        clamp_rva2_peak(gain_data.peak),
+                        gain_data.ref_level)
+
+
+# ID3v2 support for legacy RVA2-frames-based format according to
+# http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2
+class MP3RVA2TagReaderWriter(MP3TagReaderWriter):
+    # EasyID3 maps these to RVA2 by default
+    TRACK_GAIN_TAG = u"replaygain_track_gain"
+    TRACK_PEAK_TAG = u"replaygain_track_peak"
+    ALBUM_GAIN_TAG = u"replaygain_album_gain"
+    ALBUM_PEAK_TAG = u"replaygain_album_peak"
+
+    # since there's no proper reference loudness tag for the legacy format, we
+    # use reasonably common TXXX tags; these were registered in the superclass
+    REF_LOUDNESS_TAGS = [
+        u"TXXX:replaygain_reference_loudness",
+        u"TXXX:QuodLibet::replaygain_reference_loudness",
+    ]
+
+    def _dump_gain(self, gain):
+        return SimpleTagReaderWriter._dump_gain(self, clamp_rva2_gain(gain))
+
+    def _dump_peak(self, peak):
+        return SimpleTagReaderWriter._dump_peak(self, clamp_rva2_peak(peak))
+
 
 # Special compatible MP3 support that
 #  - reads both rg.org and legacy gain, compares them, returns them if they
 #    match, else returns no gain data
 #  - writes both rg.org and legacy gain
+class MP3DefaultTagReaderWriter(BaseTagReaderWriter):
+    def __init__(self, rgorg_readerwriter, rva2_readerwriter):
+        self.rgorg = rgorg_readerwriter
+        self.rva2 = rva2_readerwriter
+
+    def read_gain(self, filename):
+        rgorg = self.rgorg.read_gain(filename)
+        rva2 = self.rva2.read_gain(filename)
+        # We want to ensure we have all bits of data so if we only have one format,
+        # we say we have none to enforce recalculation.
+        if rgorg[0] is None or rva2[0] is None:
+            # ensure that track gain exists for both
+            return (None, None)
+        if (not gaindata_almost_equal(rgorg[0], rva2[0]) or
+            not gaindata_almost_equal(rgorg[1], rva2[1])):
+            # The different formats are not similar enough.
+            return (None, None)
+        else:
+            # the formats seem to match, we obviously use the non-clamped one
+            return rgorg
+
+    def write_gain(self, filename, track_gain, album_gain):
+        self.rgorg.write_gain(filename, track_gain, album_gain)
+        self.rva2.write_gain(filename, track_gain, album_gain)
+
 GAIN_EPSILON = 0.1
 PEAK_EPSILON = 0.001
 REF_LEVEL_EPSILON = 0.1
@@ -284,46 +315,36 @@ def gaindata_almost_equal(a, b):
             peak_almost_equal(a.peak, b.peak) and
             almost_equal(a.ref_level, b.ref_level, REF_LEVEL_EPSILON))
 
-def mp3_default_read_gain(filename):
-    rgorg = mp3_rgorg_read_gain(filename)
-    legacy = mp3_legacy_read_gain(filename)
-    # We want to ensure we have all bits of data so if we only have one format,
-    # we say we have none to enforce recalculation.
-    if rgorg[0] is None or legacy[0] is None:
-        return (None, None)
-    if (not gaindata_almost_equal(rgorg[0], legacy[0]) or
-            not gaindata_almost_equal(rgorg[1], legacy[1])):
-        # The different formats are not similar enough.
-        return (None, None)
-    else:
-        return rgorg
-
-def mp3_default_write_gain(filename, trackdata, albumdata):
-    mp3_legacy_write_gain(filename, trackdata, albumdata)
-    mp3_rgorg_write_gain(filename, trackdata, albumdata)
 
 # code to pull everything together
 class UnknownFiletype(Exception):
     pass
 
 class BaseFormatsMap(object):
+    _simplereaderwriter = SimpleTagReaderWriter()
+    _mp4readerwriter = MP4TagReaderWriter()
+    _mp3_rgorg_readerwriter = MP3rgorgTagReaderWriter()
+    _mp3_rva2_readerwriter = MP3RVA2TagReaderWriter()
+    _mp3_default_readerwriter = MP3DefaultTagReaderWriter(
+        _mp3_rgorg_readerwriter,
+        _mp3_rva2_readerwriter)
     
     BASE_MAP = {
-        ".ogg": (rg_read_gain, rg_write_gain),
-        ".oga": (rg_read_gain, rg_write_gain),
-        ".flac": (rg_read_gain, rg_write_gain),
-        ".wv": (rg_read_gain, rg_write_gain),
-        ".m4a": (mp4_read_gain, mp4_write_gain),
-        ".mp4": (mp4_read_gain, mp4_write_gain),
+        ".ogg": _simplereaderwriter,
+        ".oga": _simplereaderwriter,
+        ".flac": _simplereaderwriter,
+        ".wv": _simplereaderwriter,
+        ".m4a": _mp4readerwriter,
+        ".mp4": _mp4readerwriter,
     }
 
     MP3_FORMATS = {
-        None: (mp3_default_read_gain, mp3_default_write_gain),
-        "default": (mp3_default_read_gain, mp3_default_write_gain),
-        "replaygain.org": (mp3_rgorg_read_gain, mp3_rgorg_write_gain),
-        "fb2k": (mp3_rgorg_read_gain, mp3_rgorg_write_gain),
-        "legacy": (mp3_legacy_read_gain, mp3_legacy_write_gain),
-        "ql": (mp3_legacy_read_gain, mp3_legacy_write_gain),
+        None: _mp3_default_readerwriter,
+        "default": _mp3_default_readerwriter,
+        "replaygain.org": _mp3_rgorg_readerwriter,
+        "fb2k": _mp3_rgorg_readerwriter,
+        "legacy": _mp3_rva2_readerwriter,
+        "ql": _mp3_rva2_readerwriter,
     }
 
     MP3_DISPLAY_FORMATS = ["default", "replaygain.org", "legacy", "ql", "fb2k"]
@@ -350,7 +371,7 @@ class BaseFormatsMap(object):
         else:
             raise UnknownFiletype(ext)
         
-        return accessor[0](filename)
+        return accessor.read_gain(filename)
     
     def write_gain(self, filename, trackgain, albumgain):
         ext = os.path.splitext(filename)[1].lower()
@@ -361,4 +382,4 @@ class BaseFormatsMap(object):
         else:
             raise UnknownFiletype(ext)
         
-        accessor[1](filename, trackgain, albumgain)
+        accessor.write_gain(filename, trackgain, albumgain)
