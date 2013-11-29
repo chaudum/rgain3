@@ -57,14 +57,12 @@ def almost_equal(a, b, epsilon):
 
 # basic tag-based reader/writer, suited for Ogg (Vorbis, Flac, Speex, ...) and
 # Flac files at least (also WavPack it seems)
-def rg_read_gain(filename):
+def read_gain(filename, track_gain_tag, album_gain_tag, track_peak_tag, album_peak_tag, reference_loudness_tag=None):
     tags = mutagen.File(filename)
     if tags is None:
         raise AudioFormatError(filename)
 
-    def read_gain_data(desc):
-        gain_tag = u"replaygain_%s_gain" % desc
-        peak_tag = u"replaygain_%s_peak" % desc
+    def read_gain_data(gain_tag, peak_tag):
         if gain_tag in tags:
             gain = parse_db(tags[gain_tag][0])
             if gain is None:
@@ -74,32 +72,51 @@ def rg_read_gain(filename):
                 peak = parse_peak(tags[peak_tag][0])
                 if peak is not None:
                     gaindata.peak = peak
-            if u"replaygain_reference_loudness" in tags:
-                ref_level = parse_db(tags[u"replaygain_reference_loudness"][0])
+            if reference_loudness_tag is not None and reference_loudness_tag in tags:
+                ref_level = parse_db(tags[reference_loudness_tag][0])
                 if ref_level is not None:
                     gaindata.ref_level = ref_level
         else:
             gaindata = None
         return gaindata
     
-    return read_gain_data("track"), read_gain_data("album")
+    return read_gain_data(track_gain_tag, track_peak_tag), read_gain_data(album_gain_tag, album_peak_tag)
 
-def rg_write_gain(filename, trackdata, albumdata):
+def write_gain(filename, trackdata, albumdata, track_gain_tag, album_gain_tag, track_peak_tag, album_peak_tag, reference_loudness_tag=None):
     tags = mutagen.File(filename)
     if tags is None:
         raise AudioFormatError(filename)
+
     
     if trackdata:
-        tags[u"replaygain_track_gain"] = u"%.8f dB" % trackdata.gain
-        tags[u"replaygain_track_peak"] = u"%.8f" % trackdata.peak
-        tags[u"replaygain_reference_loudness"] = u"%i dB" % trackdata.ref_level
+        tags[track_gain_tag] = "%.8f dB" % trackdata.gain
+        tags[track_peak_tag] = "%.8f" % trackdata.peak
+        if reference_loudness_tag:
+            tags[reference_loudness_tag] = "%i dB" % trackdata.ref_level
     
     if albumdata:
-        tags[u"replaygain_album_gain"] = u"%.8f dB" % albumdata.gain
-        tags[u"replaygain_album_peak"] = u"%.8f" % albumdata.peak
+        tags[album_gain_tag] = "%.8f dB" % albumdata.gain
+        tags[album_peak_tag] = "%.8f" % albumdata.peak
     
     tags.save()
 
+def rg_read_gain(filename):
+    format = u"replaygain_%s_%s"
+    return read_gain(filename, format % ("track", "gain"), format % ("album", "gain"), format % ("track", "peak"), format % ("album", "peak"), u"replaygain_reference_loudness")
+
+def rg_write_gain(filename, trackdata, albumdata):
+    format = u"replaygain_%s_%s"
+    return write_gain(filename, trackdata, albumdata, format % ("track", "gain"), format % ("album", "gain"), format % ("track", "peak"), format % ("album", "peak"), u"replaygain_reference_loudness")
+
+
+def mp4_read_gain(filename):
+    format = u"----:com.apple.iTunes:replaygain_%s_%s"
+    return read_gain(filename, format % ("track", "gain"), format % ("album", "gain"), format % ("track", "peak"), format % ("album", "peak"))
+
+def mp4_write_gain(filename, trackdata, albumdata):
+    format = u"----:com.apple.iTunes:replaygain_%s_%s"
+    return write_gain(filename, trackdata, albumdata, format % ("track", "gain"), format % ("album", "gain"), format % ("track", "peak"), format % ("album", "peak"))
+    
 
 # ID3v2 support for legacy RVA2-frames-based format according to
 # http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2
@@ -296,6 +313,8 @@ class BaseFormatsMap(object):
         ".oga": (rg_read_gain, rg_write_gain),
         ".flac": (rg_read_gain, rg_write_gain),
         ".wv": (rg_read_gain, rg_write_gain),
+        ".m4a": (mp4_read_gain, mp4_write_gain),
+        ".mp4": (mp4_read_gain, mp4_write_gain),
     }
 
     MP3_FORMATS = {
