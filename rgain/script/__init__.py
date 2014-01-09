@@ -26,7 +26,19 @@ from gi.repository import Gst
 
 import rgain.rgio
 
-stdout_encoding = sys.stdout.encoding or sys.getfilesystemencoding()
+__all__ = [
+    "getfilesystemencoding",
+    "ou",
+    "un",
+    "Error",
+    "init_gstreamer",
+    "common_options"]
+
+def getfilesystemencoding():
+    # get file system encoding, making sure never to return None
+    return sys.getfilesystemencoding() or sys.getdefaultencoding()
+
+stdout_encoding = sys.stdout.encoding or getfilesystemencoding()
 def ou(arg):
     if isinstance(arg, str):
         return arg.decode("ascii").encode(stdout_encoding)

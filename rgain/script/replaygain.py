@@ -22,7 +22,7 @@ import os.path
 from gi.repository import GObject
 
 from rgain import rgcalc, rgio, util
-from rgain.script import ou, un, Error, common_options, init_gstreamer
+from rgain.script import *
 
 
 # calculate the gain for the given files
@@ -64,7 +64,7 @@ def calculate_gain(files, ref_level):
 def do_gain(files, ref_level=89, force=False, dry_run=False, album=True,
             mp3_format=None):
     
-    files = [un(filename, sys.getfilesystemencoding()) for filename in files]
+    files = [un(filename, getfilesystemencoding()) for filename in files]
     
     formats_map = rgio.BaseFormatsMap(mp3_format)
     
@@ -141,7 +141,7 @@ def show_rgain_info(filenames, mp3_format=None):
     formats_map = rgio.BaseFormatsMap(mp3_format)
     
     for filename in filenames:
-        filename = un(filename, sys.getfilesystemencoding())
+        filename = un(filename, getfilesystemencoding())
         print ou(filename)
         try:
             trackdata, albumdata = formats_map.read_gain(filename)
