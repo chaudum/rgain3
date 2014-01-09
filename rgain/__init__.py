@@ -44,8 +44,9 @@ class GSTError(Exception):
     def __init__(self, gerror, debug):
         self.domain = gerror.domain
         self.code = gerror.code
-        self.message = gerror.message
-        self.debug = debug
+        # any string from glib stuff should be a UTF-8 byte string, right?
+        self.message = gerror.message.decode("utf-8")
+        self.debug = debug.decode("utf-8")
 
     def __unicode__(self):
         return u"GST error: %s (%s)" % (self.message, self.debug)
