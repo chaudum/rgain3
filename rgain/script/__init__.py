@@ -40,7 +40,10 @@ def getfilesystemencoding():
 
 stdout_encoding = sys.stdout.encoding or getfilesystemencoding()
 def ou(arg):
+    # turn arg into a string suitable for console output
     if isinstance(arg, str):
+        # we aggressively suggest that anything passed into this function should
+        # be a Unicode string by rejecting non-ASCII byte input.
         return arg.decode("ascii").encode(stdout_encoding)
     return arg.encode(stdout_encoding)
 
