@@ -118,22 +118,34 @@ class ReplayGain(GObject.GObject):
     
     
     # internal stuff
+    def _check_elem(self, elem):
+        if elem is None:
+            # that element couldn't be created, maybe because plugins are
+            # missing?
+            raise Exception(u"failed to construct pipeline (did you install "
+                            u"all necessary GStreamer plugins?)")
+        else:
+            return elem
     def _setup_pipeline(self):
         """Setup the pipeline."""
         self.pipe = Gst.Pipeline()
         
         # elements
-        self.src = Gst.ElementFactory.make("filesrc", "src")
+        self.src = self._check_elem(Gst.ElementFactory.make("filesrc", "src"))
         self.pipe.add(self.src)
-        self.decbin = Gst.ElementFactory.make("decodebin", "decbin")
+        self.decbin = self._check_elem(Gst.ElementFactory.make("decodebin",
+                                                               "decbin"))
         self.pipe.add(self.decbin)
-        self.conv = Gst.ElementFactory.make("audioconvert", "conv")
+        self.conv = self._check_elem(Gst.ElementFactory.make("audioconvert",
+                                                             "conv"))
         self.pipe.add(self.conv)
-        self.res = Gst.ElementFactory.make("audioresample", "res")
+        self.res = self._check_elem(Gst.ElementFactory.make("audioresample",
+                                                            "res"))
         self.pipe.add(self.res)
-        self.rg = Gst.ElementFactory.make("rganalysis", "rg")
+        self.rg = self._check_elem(Gst.ElementFactory.make("rganalysis", "rg"))
         self.pipe.add(self.rg)
-        self.sink = Gst.ElementFactory.make("fakesink", "sink")
+        self.sink = self._check_elem(Gst.ElementFactory.make("fakesink",
+                                                             "sink"))
         self.pipe.add(self.sink)
         
         # Set num-tracks to the number of files we have to process so they're
