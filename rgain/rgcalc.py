@@ -187,13 +187,8 @@ class ReplayGain(GObject.GObject):
         # that all file names passed to it are encoded in the system encoding).
         # That way, people on non-UTF-8 systems or with non-UTF-8 file names can
         # still force all file name processing into a different encoding.
-        # On Windows, GLib always wants UTF-8 file names (I think?), so we use
-        # that (see, there's a system with actual built-in Unicode support).
-        if sys.platform == "win32":
-            fname_encoding = "utf-8"
-        else:
-            fname_encoding = util.getfilesystemencoding()
-        self.src.set_property("location", fname.encode(fname_encoding))
+        self.src.set_property("location",
+                              fname.encode(util.getfilesystemencoding()))
         self._current_file = fname
         self.emit("track-started", fname)
         
