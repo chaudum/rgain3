@@ -21,6 +21,7 @@ documentation or use the ``calculate`` function.
 """
 
 import os.path
+import sys
 
 import gi
 gi.require_version('Gst', '1.0')
@@ -39,12 +40,6 @@ GObject.threads_init()
 # broken pygobject versions.
 import threading
 threading.Thread(target=lambda: None).start()
-
-def to_utf8(string):
-    if isinstance(string, unicode):
-        return string.encode("utf-8")
-    else:
-        return string.decode("utf-8").encode("utf-8")
 
 class ReplayGain(GObject.GObject):
     
@@ -181,11 +176,26 @@ class ReplayGain(GObject.GObject):
         except StopIteration:
             self.emit("all-finished", self.track_data, self.album_data)
             return False
-        
-        # point the source to the new file
-        self.src.set_property("location", to_utf8(fname))
+
+        # By default, GLib (and therefore GStreamer) assume any filename to be
+        # UTF-8 encoded, regardless of locale settings (though most Unix
+        # systems, Linux at least, should be configured for UTF-8 anyways these
+        # days). The file name we pass to GStreamer is encoded with the system
+        # default encoding here: if that's UTF-8, everyone's happy, if it isn't,
+        # GLib's UTF-8 assumption needs to be overridden using the
+        # G_FILENAME_ENCODING environment variable (set to locale to tell GLib
+        # that all file names passed to it are encoded in the system encoding).
+        # That way, people on non-UTF-8 systems or with non-UTF-8 file names can
+        # still force all file name processing into a different encoding.
+        # On Windows, GLib always wants UTF-8 file names (I think?), so we use
+        # that (see, there's a system with actual built-in Unicode support).
+        if sys.platform == "win32":
+            fname_encoding = "utf-8"
+        else:
+            fname_encoding = util.getfilesystemencoding()
+        self.src.set_property("location", fname.encode(fname_encoding))
         self._current_file = fname
-        self.emit("track-started", to_utf8(fname))
+        self.emit("track-started", fname)
         
         return True
     
@@ -225,7 +235,7 @@ class ReplayGain(GObject.GObject):
         if msg.type == Gst.MessageType.TAG:
             self._process_tags(msg)
         elif msg.type == Gst.MessageType.EOS:
-            self.emit("track-finished", to_utf8(self._current_file),
+            self.emit("track-finished", self._current_file,
                       self.track_data[self._current_file])
             # Preserve rganalysis state
             self.rg.set_locked_state(True)

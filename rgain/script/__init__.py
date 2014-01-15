@@ -34,9 +34,8 @@ __all__ = [
     "init_gstreamer",
     "common_options"]
 
-def getfilesystemencoding():
-    # get file system encoding, making sure never to return None
-    return sys.getfilesystemencoding() or sys.getdefaultencoding()
+# we re-export this function for convenience and compatibility
+from rgain.util import getfilesystemencoding
 
 stdout_encoding = sys.stdout.encoding or getfilesystemencoding()
 def ou(arg):

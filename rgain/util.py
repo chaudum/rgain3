@@ -17,6 +17,11 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import contextlib
+import sys
+
+def getfilesystemencoding():
+    # get file system encoding, making sure never to return None
+    return sys.getfilesystemencoding() or sys.getdefaultencoding()
 
 @contextlib.contextmanager
 def gobject_signals(obj, *signals):
