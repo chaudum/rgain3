@@ -6,4 +6,4 @@ syntax: glob
 MANIFEST
 dist
 build
-
+.idea
