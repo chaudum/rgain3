@@ -90,7 +90,10 @@ class SimpleTagReaderWriter(BaseTagReaderWriter):
                                           self.ALBUM_PEAK_TAG)
         ref_level = self._read_ref_loudness(tags)
         if ref_level is not None:
-            track_gain.ref_level = album_gain.ref_level = ref_level
+            if track_gain:
+                track_gain.ref_level = ref_level
+            if album_gain:
+                album_gain.ref_level = ref_level
         return track_gain, album_gain
 
     def _read_gain_data(self, tags, gain_tag, peak_tag):
