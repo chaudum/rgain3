@@ -161,6 +161,7 @@ rgain 1.3.2 (UNRELEASED)
 - Fixed some problems with non-UTF8 file names. They should now work as long as
   any file names touched by **rgain** match the system encoding.
   (https://bitbucket.org/fk/rgain/issue/12/unicodedecodeerror-ascii-codec-cant-decode)
+- Misc. bug fixes.
 
 rgain 1.3.1 (2013-11-29)
 ------------------------
