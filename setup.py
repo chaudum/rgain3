@@ -7,6 +7,8 @@ import sys
 from distutils.core import Command, Distribution, setup
 from distutils.command.build import build
 
+from rgain import __version__
+
 try:
     import docutils.core
 
@@ -59,7 +61,7 @@ except ImportError:
 
 setup(
     name="rgain",
-    version="1.3.1",
+    version=__version__,
     description="Multi-format Replay Gain utilities",
     author="Felix Krull",
     author_email="f_krull@gmx.de",
