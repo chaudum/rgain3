@@ -6,8 +6,8 @@
  large scale Replay Gain calculating tool
 ------------------------------------------
 
-:Date:   2013-11-29
-:Version: 1.3.1
+:Date: DATE
+:Version: VERSION
 :Manual section: 1
 :Manual group: rgain
 

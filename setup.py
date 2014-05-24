@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
+from datetime import date
 import os
 import sys
+import tempfile
 from distutils.core import Command, Distribution, setup
 from distutils.command.build import build
 
@@ -15,6 +17,7 @@ try:
     class ManpagesDistribution(Distribution):
         def __init__(self, attrs=None):
             self.rst_manpages = None
+            self.rst_manpages_update_info = False
             Distribution.__init__(self, attrs)
 
     class build_manpages(Command):
@@ -25,12 +28,15 @@ try:
 
         def initialize_options(self):
             self.rst_manpages = None
+            self.rst_manpages_update_info = False
             self.outputdir = None
 
         def finalize_options(self):
             if not self.outputdir:
                 self.outputdir = os.path.join("build", "man")
             self.rst_manpages = self.distribution.rst_manpages
+            self.rst_manpages_update_info = \
+                self.distribution.rst_manpages_update_info
 
         def run(self):
             if not self.rst_manpages:
@@ -38,11 +44,32 @@ try:
             if not os.path.exists(self.outputdir):
                 os.makedirs(self.outputdir, mode=0o755)
             for infile, outfile in self.rst_manpages:
+                if self.rst_manpages_update_info:
+                    print("Updating %s info..." % infile, end="")
+                    with tempfile.NamedTemporaryFile("w", delete=False) as tmp:
+                        with open(infile, "r") as f:
+                            for line in f:
+                                if line.startswith(":Date:"):
+                                    today = date.today()
+                                    tmp.write(
+                                        ":Date: %s-%s-%s\n" %
+                                        (today.year, today.month, today.day))
+                                elif line.startswith(":Version:"):
+                                    tmp.write(":Version: %s\n" % __version__)
+                                else:
+                                    tmp.write(line)
+                    real_infile = tmp.name
+                    print("ok")
+                else:
+                    real_infile = infile
+
                 print("Converting %s to %s ..." % (infile, outfile), end="")
                 docutils.core.publish_file(
-                    source_path=infile,
+                    source_path=real_infile,
                     destination_path=os.path.join(self.outputdir, outfile),
                     writer_name="manpage")
+                if real_infile != infile:
+                    os.remove(real_infile)
                 print("ok")
 
     build.sub_commands.append(("build_manpages", None))
@@ -51,6 +78,7 @@ try:
             ("man/replaygain.rst", "replaygain.1"),
             ("man/collectiongain.rst", "collectiongain.1"),
         ],
+        "rst_manpages_update_info": True,
         "cmdclass": {"build_manpages": build_manpages},
         "distclass": ManpagesDistribution,
     }
