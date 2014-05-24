@@ -6,7 +6,13 @@ from datetime import date
 import os
 import sys
 import tempfile
-from distutils.core import Command, Distribution, setup
+
+try:
+    from setuptools import Command, Distribution, setup
+except ImportError:
+    print("setuptools unavailable, falling back to distutils.",
+          file=sys.stderr)
+    from distutils.core import Command, Distribution, setup
 from distutils.command.build import build
 
 from rgain import __version__
@@ -83,8 +89,7 @@ try:
         "distclass": ManpagesDistribution,
     }
 except ImportError:
-    print >> sys.stderr, ("You do not have docutils, the manpages won't be "
-                          "generated.")
+    print("docutils not found, manpages won't be generated.", file=sys.stderr)
     manpages_args = {}
 
 setup(
