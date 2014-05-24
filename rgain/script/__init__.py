@@ -24,6 +24,7 @@ import gi
 gi.require_version("Gst", "1.0")
 from gi.repository import Gst
 
+from rgain import __version__
 import rgain.rgio
 
 __all__ = [
@@ -91,7 +92,7 @@ def init_gstreamer():
 
 
 def common_options():
-    opts = OptionParser(version="%prog 1.3.1")
+    opts = OptionParser(version="%%prog %s" % __version__)
     
     opts.add_option("-f", "--force", help="Recalculate Replay Gain even if the "
                     "file already contains gain information.", dest="force",
