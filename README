@@ -156,7 +156,7 @@ behaviour. Possible choices with this switch are:
 
 Changes
 =======
-rgain 1.3.2 (UNRELEASED)
+rgain 1.3.2 (2014-05-24)
 ------------------------
 - Fixed some problems with non-UTF8 file names. They should now work as long as
   any file names touched by **rgain** match the system encoding.
