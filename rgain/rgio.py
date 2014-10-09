@@ -72,8 +72,8 @@ class BaseTagReaderWriter(object):
 # files
 class SimpleTagReaderWriter(BaseTagReaderWriter):
     TRACK_GAIN_TAG = u"replaygain_track_gain"
-    ALBUM_GAIN_TAG = u"replaygain_track_peak"
-    TRACK_PEAK_TAG = u"replaygain_album_gain"
+    TRACK_PEAK_TAG = u"replaygain_track_peak"
+    ALBUM_GAIN_TAG = u"replaygain_album_gain"
     ALBUM_PEAK_TAG = u"replaygain_album_peak"
     REF_LOUDNESS_TAGS = [u"replaygain_reference_loudness"]
 
