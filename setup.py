@@ -24,6 +24,8 @@ try:
         def __init__(self, attrs=None):
             self.rst_manpages = None
             self.rst_manpages_update_info = False
+            self.rst_manpages_version = None
+            self.rst_manpages_date = None
             Distribution.__init__(self, attrs)
 
     class build_manpages(Command):
@@ -35,6 +37,8 @@ try:
         def initialize_options(self):
             self.rst_manpages = None
             self.rst_manpages_update_info = False
+            self.rst_manpages_version = "1.0"
+            self.rst_manpages_date = date.today()
             self.outputdir = None
 
         def finalize_options(self):
@@ -43,6 +47,8 @@ try:
             self.rst_manpages = self.distribution.rst_manpages
             self.rst_manpages_update_info = \
                 self.distribution.rst_manpages_update_info
+            self.rst_manpages_version = self.distribution.rst_manpages_version
+            self.rst_manpages_date = self.distribution.rst_manpages_date
 
         def run(self):
             if not self.rst_manpages:
@@ -56,12 +62,13 @@ try:
                         with open(infile, "r") as f:
                             for line in f:
                                 if line.startswith(":Date:"):
-                                    today = date.today()
+                                    dt = self.rst_manpages_date
                                     tmp.write(
                                         ":Date: %s-%s-%s\n" %
-                                        (today.year, today.month, today.day))
+                                        (dt.year, dt.month, dt.day))
                                 elif line.startswith(":Version:"):
-                                    tmp.write(":Version: %s\n" % __version__)
+                                    tmp.write(":Version: %s\n" %
+                                              self.rst_manpages_version)
                                 else:
                                     tmp.write(line)
                     real_infile = tmp.name
@@ -85,6 +92,8 @@ try:
             ("man/collectiongain.rst", "collectiongain.1"),
         ],
         "rst_manpages_update_info": True,
+        "rst_manpages_version": __version__,
+        "rst_manpages_date": date.today(),
         "cmdclass": {"build_manpages": build_manpages},
         "distclass": ManpagesDistribution,
     }
