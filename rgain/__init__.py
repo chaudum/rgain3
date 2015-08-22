@@ -23,28 +23,38 @@ __all__ = ["__version__", "GainData"]
 
 
 class GainData(object):
-    
+    TP_UNDEFINED = 0
+    TP_TRACK = 1
+    TP_ALBUM = 2
+
     """A class that contains Replay Gain data.
-    
+
     Arguments for ``__init__`` are also instance variables. These are:
      - ``gain``: the gain (in dB, relative to ``ref_level``)
      - ``peak``: the peak
      - ``ref_level``: the used reference level (in dB)
     """
-    
-    def __init__(self, gain, peak=1.0, ref_level=89):
+
+    def __init__(self, gain, peak=1.0, ref_level=89, gain_type=TP_UNDEFINED):
         self.gain = gain
         self.peak = peak
         self.ref_level = ref_level
-        
-        
+        self.gain_type = gain_type
+
     def __str__(self):
         return ("gain=%.2f dB; peak=%.8f; reference-level=%i dB" %
                 (self.gain, self.peak, self.ref_level))
 
     def __eq__(self, other):
-        return other is not None and (self.gain == other.gain and
-            self.peak == other.peak and self.ref_level == other.ref_level)
+        return isinstance(other, GainData) and (
+            self.gain == other.gain and
+            self.peak == other.peak and
+            self.ref_level == other.ref_level and
+            self.gain_type == other.gain_type)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 class GSTError(Exception):
     def __init__(self, gerror, debug):
