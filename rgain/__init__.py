@@ -23,9 +23,9 @@ __all__ = ["__version__", "GainData"]
 
 
 class GainData(object):
-    TP_UNDEFINED = 0
-    TP_TRACK = 1
-    TP_ALBUM = 2
+    TP_UNDEFINED = "TP_UNDEFINED"
+    TP_TRACK = "TP_TRACK"
+    TP_ALBUM = "TP_ALBUM"
 
     """A class that contains Replay Gain data.
 
@@ -44,6 +44,10 @@ class GainData(object):
     def __str__(self):
         return ("gain=%.2f dB; peak=%.8f; reference-level=%i dB" %
                 (self.gain, self.peak, self.ref_level))
+
+    def __repr__(self):
+        return "GainData(%s, %s, %s, %s)" % (self.gain, self.peak,
+                                             self.ref_level, self.gain_type)
 
     def __eq__(self, other):
         return isinstance(other, GainData) and (

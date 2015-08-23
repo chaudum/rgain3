@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-# 
-# Copyright (c) 2009-2014 Felix Krull <f_krull@gmx.de>
-# 
+#
+# Copyright (c) 2009-2015 Felix Krull <f_krull@gmx.de>
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -19,9 +19,6 @@
 """Replay Gain analysis using GStreamer. See ``ReplayGain`` class for full
 documentation or use the ``calculate`` function.
 """
-
-import os.path
-import sys
 
 import gi
 gi.require_version('Gst', '1.0')
@@ -41,10 +38,16 @@ GObject.threads_init()
 import threading
 threading.Thread(target=lambda: None).start()
 
+
+class MissingPluginsError(Exception):
+    """We're most likely missing some GStreamer plugins."""
+    pass
+
+
 class ReplayGain(GObject.GObject):
-    
+
     """Perform a Replay Gain analysis on some files.
-    
+
     This class doesn't actually write any Replay Gain information - that is left
     as an exercise to the user. It only analyzes the files and presents the
     result.
@@ -63,68 +66,69 @@ class ReplayGain(GObject.GObject):
     ``None`` values if album gain isn't calculated). Note that the values don't
     contain any kind of unit, which might be needed.
     """
-    
+
     __gsignals__ = {
         "all-finished": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
-            (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
+                         (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
         "track-started": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
-            (GObject.TYPE_STRING,)),
+                          (GObject.TYPE_STRING,)),
         "track-finished": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
-            (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
+                           (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
         "error": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
-            (GObject.TYPE_PYOBJECT,)),
+                  (GObject.TYPE_PYOBJECT,)),
     }
-    
-    
+
     def __init__(self, files, force=False, ref_lvl=89):
+        # TODO: force is apparently unused now. Should remove it in a cleanup.
         GObject.GObject.__init__(self)
         self.files = files
-        self.force = force
         self.ref_lvl = ref_lvl
-        
+
         self._setup_pipeline()
         self._setup_rg_elem()
-        
+
         self._files_iter = iter(self.files)
-        
+
         # this holds all track gain data
         self.track_data = {}
-        self.album_data = GainData(0)
-    
+        self.album_data = GainData(0, ref_level=self.ref_lvl,
+                                   gain_type=GainData.TP_ALBUM)
+
     def start(self):
         """Start processing.
-        
+
         For it to work correctly, you'll need to run some GObject main loop
         (e.g. the Gtk one) or process any events manually (though I have no
         idea how or if that works).
         """
         if not self._next_file():
-            raise ValueError("do never, ever run this thing without any files")
+            raise ValueError("no file names supplied")
         self.pipe.set_state(Gst.State.PLAYING)
-    
+
     def pause(self, pause):
         if pause:
             self.pipe.set_state(Gst.State.PAUSED)
         else:
             self.pipe.set_state(Gst.State.PLAYING)
-    
+
     def stop(self):
         self.pipe.set_state(Gst.State.NULL)
-    
-    
+
     # internal stuff
     def _check_elem(self, elem):
         if elem is None:
             # that element couldn't be created, maybe because plugins are
             # missing?
-            raise Exception(u"failed to construct pipeline (did you install "
-                            u"all necessary GStreamer plugins?)")
+            raise MissingPluginsError(u"failed to construct pipeline (did you "
+                                      u"install all necessary GStreamer "
+                                      u"plugins?)")
         else:
             return elem
+
     def _setup_pipeline(self):
         """Setup the pipeline."""
         self.pipe = Gst.Pipeline()
-        
+
         # elements
         self.src = self._check_elem(Gst.ElementFactory.make("filesrc", "src"))
         self.pipe.add(self.src)
@@ -142,11 +146,11 @@ class ReplayGain(GObject.GObject):
         self.sink = self._check_elem(Gst.ElementFactory.make("fakesink",
                                                              "sink"))
         self.pipe.add(self.sink)
-        
+
         # Set num-tracks to the number of files we have to process so they're
         # all treated as one album. Fixes #8.
         self.rg.set_property("num-tracks", len(self.files))
-        
+
         # link
         self.src.link(self.decbin)
         self.conv.link(self.res)
@@ -154,19 +158,19 @@ class ReplayGain(GObject.GObject):
         self.rg.link(self.sink)
         self.decbin.connect("pad-added", self._on_pad_added)
         self.decbin.connect("pad-removed", self._on_pad_removed)
-        
+
         bus = self.pipe.get_bus()
         bus.add_signal_watch()
         bus.connect("message", self._on_message)
-    
+
     def _setup_rg_elem(self):
         # there's no way to specify 'forced', as it's usually useless
         self.rg.set_property("forced", True)
         self.rg.set_property("reference-level", self.ref_lvl)
-    
+
     def _next_file(self):
         """Load the next file to analyze.
-        
+
         Returns False if everything is done and the pipeline shouldn't be
         started again; True otherwise.
         """
@@ -191,13 +195,15 @@ class ReplayGain(GObject.GObject):
                               fname.encode(util.getfilesystemencoding()))
         self._current_file = fname
         self.emit("track-started", fname)
-        
+
         return True
-    
+
     def _process_tags(self, msg):
         """Process a tag message."""
         tags = msg.parse_tag()
-        trackdata = self.track_data.setdefault(self._current_file, GainData(0))
+        trackdata = self.track_data.setdefault(
+            self._current_file,
+            GainData(0, ref_level=self.ref_lvl, gain_type=GainData.TP_TRACK))
 
         def handle_tag(taglist, tag, userdata):
             if tag == Gst.TAG_TRACK_GAIN:
@@ -206,26 +212,25 @@ class ReplayGain(GObject.GObject):
                 _, trackdata.peak = taglist.get_double(tag)
             elif tag == Gst.TAG_REFERENCE_LEVEL:
                 _, trackdata.ref_level = taglist.get_double(tag)
-            
+
             elif tag == Gst.TAG_ALBUM_GAIN:
                 _, self.album_data.gain = taglist.get_double(tag)
             elif tag == Gst.TAG_ALBUM_PEAK:
                 _, self.album_data.peak = taglist.get_double(tag)
-        
+
         tags.foreach(handle_tag, None)
-    
-    
+
     # event handlers
     def _on_pad_added(self, decbin, new_pad):
         sinkpad = self.conv.get_compatible_pad(new_pad, None)
         if sinkpad is not None:
             new_pad.link(sinkpad)
-    
+
     def _on_pad_removed(self, decbin, old_pad):
         peer = old_pad.get_peer()
         if peer is not None:
             old_pad.unlink(peer)
-    
+
     def _on_message(self, bus, msg):
         if msg.type == Gst.MessageType.TAG:
             self._process_tags(msg)
@@ -252,7 +257,7 @@ class ReplayGain(GObject.GObject):
 
 def calculate(*args, **kwargs):
     """Analyze some files.
-    
+
     This is only a convenience interface to the ``ReplayGain`` class: it takes
     the same arguments, but setups its own main loop and returns the results
     once everything's finished.
@@ -267,9 +272,10 @@ def calculate(*args, **kwargs):
         exc_slot[0] = exc
         loop.quit()
     rg = ReplayGain(*args, **kwargs)
-    with util.gobject_signals(rg,
-        ("all-finished", on_finished),
-        ("error", on_error),):
+    with util.gobject_signals(
+            rg,
+            ("all-finished", on_finished),
+            ("error", on_error),):
         loop = GObject.MainLoop()
         rg.start()
         loop.run()
