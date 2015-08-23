@@ -158,6 +158,8 @@ Changes
 =======
 rgain 1.3.4 (UNRELEASED)
 ------------------------
+- Support an additional format of MusicBrainz tags for MP3 files.
+- Album artist tags for MP3 files are now case-sensitive.
 
 rgain 1.3.3 (2014-10-09)
 ------------------------
