@@ -30,7 +30,7 @@ Installation
 ============
 Just install it like any other Python package: unpack, then (as root/with
 **sudo**)::
- 
+
  # python setup.py install
 
 **replaygain**
