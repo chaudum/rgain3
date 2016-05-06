@@ -110,7 +110,7 @@ setup(
     url="http://bitbucket.org/fk/rgain",
     license="GNU General Public License (v2 or later)",
     classifiers=[
-        "Development Status :: 6 - Mature",
+        "Development Status :: 7 - Inactive",
         "Environment :: Console",
         "Intended Audience :: End Users/Desktop",
         "Intended Audience :: Developers",
@@ -129,6 +129,10 @@ to its like-named cousins, most prominently ``vorbisgain`` and ``mp3gain`` --
 only that itworks for all those supported formats alike. ``collectiongain``
 on the other hand is a kind of fire-and-forget tool for big amounts of music
 files.
+
+NOTE: rgain is currently not being developed; for more information or if you'd
+like to help remedying this situation, see:
+https://bitbucket.org/fk/rgain/issues/26/wanted-new-maintainer
 """,
 
     packages=["rgain", "rgain.script"],
