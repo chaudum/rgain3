@@ -398,5 +398,5 @@ class BaseFormatsMap(object):
             accessor = self.BASE_MAP[ext]
         else:
             raise UnknownFiletype(ext)
-        
+
         accessor.write_gain(filename, trackgain, albumgain)

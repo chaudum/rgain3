@@ -35,30 +35,35 @@ def _get_simple_tag(tags, mp3_keys, default_key):
     # default fall-through
     return None
 
-get_musicbrainz_album_id = lambda tags: _get_simple_tag(
-    tags,
-    ["TXXX:MusicBrainz Album Id", "TXXX:MUSICBRAINZ_ALBUMID"],
-    "musicbrainz_albumid")
 
-get_musicbrainz_albumartist_id = lambda tags: _get_simple_tag(
-    tags,
-    ["TXXX:MusicBrainz Album Artist Id", "TXXX:MUSICBRAINZ_ALBUMARTISTID"],
-    "musicbrainz_albumartistid")
+def get_musicbrainz_album_id(tags):
+    return _get_simple_tag(
+        tags,
+        ["TXXX:MusicBrainz Album Id", "TXXX:MUSICBRAINZ_ALBUMID"],
+        "musicbrainz_albumid")
 
-get_musicbrainz_artist_id = lambda tags: _get_simple_tag(
-    tags,
-    ["TXXX:MusicBrainz Artist Id", "TXXX:MUSICBRAINZ_ARTISTID"],
-    "musicbrainz_artistid")
 
-get_album = lambda tags: _get_simple_tag(
-    tags,
-    ["TALB"],
-    "album")
+def get_musicbrainz_albumartist_id(tags):
+    return _get_simple_tag(
+        tags,
+        ["TXXX:MusicBrainz Album Artist Id", "TXXX:MUSICBRAINZ_ALBUMARTISTID"],
+        "musicbrainz_albumartistid")
 
-get_artist = lambda tags: _get_simple_tag(
-    tags,
-    ["TPE1"],
-    "artist")
+
+def get_musicbrainz_artist_id(tags):
+    return _get_simple_tag(
+        tags,
+        ["TXXX:MusicBrainz Artist Id", "TXXX:MUSICBRAINZ_ARTISTID"],
+        "musicbrainz_artistid")
+
+
+def get_album(tags):
+    return _get_simple_tag(tags, ["TALB"], "album")
+
+
+def get_artist(tags):
+    return _get_simple_tag(tags, ["TPE1"], "artist")
+
 
 # XXX: We're not doing case-insensitive checking anymore. Let's hope that
 # doesn't regress anything...
@@ -70,11 +75,12 @@ get_artist = lambda tags: _get_simple_tag(
 #    the ID3 standard, this is performer, but fb2k uses it for album
 #    artist since 1.1.6, citing "compatibility with other players"; see
 #    http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:ID3_Tag_Mapping
-get_albumartist = lambda tags: _get_simple_tag(
-    tags,
-    ["TXXX:albumartist", "TXXX:QuodLibet::albumartist", "TXXX:ALBUM ARTIST",
-     "TPE2"],
-    "albumartist")
+def get_albumartist(tags):
+    return _get_simple_tag(
+        tags,
+        ["TXXX:albumartist", "TXXX:QuodLibet::albumartist",
+         "TXXX:ALBUM ARTIST", "TPE2"],
+        "albumartist")
 
 
 def _take_first_tag(tags, default, functions):

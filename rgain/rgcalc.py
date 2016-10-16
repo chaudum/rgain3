@@ -22,9 +22,9 @@ documentation or use the ``calculate`` function.
 
 import gi
 gi.require_version('Gst', '1.0')
-from gi.repository import GObject, Gst
+from gi.repository import GObject, Gst  # noqa
 
-from rgain import GainData, GSTError, util
+from rgain import GainData, GSTError, util  # noqa
 
 # Initialise threading.
 GObject.threads_init()
@@ -35,7 +35,7 @@ GObject.threads_init()
 # https://bugzilla.gnome.org/show_bug.cgi?id=710447). Therefore, we create a
 # dummy thread to force Python to initialise threading to accomodate these
 # broken pygobject versions.
-import threading
+import threading  # noqa
 threading.Thread(target=lambda: None).start()
 
 
@@ -81,7 +81,8 @@ class ReplayGain(GObject.GObject):
     def __init__(self, files, force=False, ref_lvl=89):
         # TODO: force is apparently unused now. Should remove it in a cleanup.
         GObject.GObject.__init__(self)
-        self.files = files
+        encoding = util.getfilesystemencoding()
+        self.files = [f.encode(encoding) for f in files]
         self.ref_lvl = ref_lvl
 
         self._setup_pipeline()
@@ -176,7 +177,7 @@ class ReplayGain(GObject.GObject):
         """
         # get the next file
         try:
-            fname = self._files_iter.next()
+            fname = next(self._files_iter)
         except StopIteration:
             self.emit("all-finished", self.track_data, self.album_data)
             return False
@@ -191,8 +192,7 @@ class ReplayGain(GObject.GObject):
         # that all file names passed to it are encoded in the system encoding).
         # That way, people on non-UTF-8 systems or with non-UTF-8 file names can
         # still force all file name processing into a different encoding.
-        self.src.set_property("location",
-                              fname.encode(util.getfilesystemencoding()))
+        self.src.set_property("location", fname)
         self._current_file = fname
         self.emit("track-started", fname)
 

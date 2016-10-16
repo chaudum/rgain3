@@ -6,7 +6,7 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
+from __future__ import print_function
 import contextlib
 import multiprocessing
 import cStringIO
@@ -31,13 +31,14 @@ except ImportError:
     import pickle
 
 import mutagen
-from mutagen.id3 import TXXX
 
 from rgain import albumid, rgio
-from rgain.script import *
+from rgain.script import (
+    Error, common_options, getfilesystemencoding, init_gstreamer, ou, un)
 from rgain.script.replaygain import do_gain
 
 CURRENT_CACHE_VERSION = 1
+
 
 # all of collectiongain
 def relpath(path, base):
@@ -47,17 +48,17 @@ def relpath(path, base):
         size += 1
     return path[size:]
 
+
 def cache_entry_valid(filepath, record):
     return (
-        isinstance(filepath, basestring)
-        and hasattr(record, "__getitem__")
-        and hasattr(record, "__len__")
-        and len(record) == 3
-        and (isinstance(record[0], basestring)
-             or record[0] is None)
-        and (isinstance(record[1], int)
-             or isinstance(record[1], float))
-        and isinstance(record[2], bool))
+        isinstance(filepath, basestring) and
+        hasattr(record, "__getitem__") and
+        hasattr(record, "__len__") and
+        len(record) == 3 and
+        (isinstance(record[0], basestring) or record[0] is None) and
+        (isinstance(record[1], int) or isinstance(record[1], float)) and
+        isinstance(record[2], bool))
+
 
 def read_cache(cache_file):
     if os.path.isfile(cache_file):
@@ -65,15 +66,15 @@ def read_cache(cache_file):
             with open(cache_file, "rb") as f:
                 cache = pickle.load(f)
                 if not isinstance(cache, tuple) or len(cache) != 2:
-                    print ou(u"Invalid cache, ignoring it")
+                    print(ou(u"Invalid cache, ignoring it"))
                     return {}
                 cache_version = cache[0]
                 if cache_version != CURRENT_CACHE_VERSION:
-                    print ou(u"Old cache format, ignoring it")
+                    print(ou(u"Old cache format, ignoring it"))
                     return {}
                 files = cache[1]
                 if not isinstance(files, dict):
-                    print ou(u"Invalid cache, ignoring it")
+                    print(ou(u"Invalid cache, ignoring it"))
                     return {}
                 to_remove = set()
                 for filepath, record in files.iteritems():
@@ -83,29 +84,31 @@ def read_cache(cache_file):
                     # remove fishy entries
                     del files[filepath]
                 return files
-        except Exception, exc:
-            print ou(u"Error while reading the cache, continuing without it - "
-                     u"%s" % exc)
-    
+        except Exception as exc:
+            print(ou(
+                u"Error while reading the cache, continuing without it - %s" %
+                (exc,)))
     return {}
+
 
 def write_cache(cache_file, files):
     cache_dir = os.path.dirname(cache_file)
     try:
         if not os.path.isdir(cache_dir):
-            os.makedirs(cache_dir, 0755)
+            os.makedirs(cache_dir, 0o755)
         with open(cache_file, "wb") as f:
             pickle.dump((CURRENT_CACHE_VERSION, files), f, 2)
-    except Exception, exc:
-        print ou(u"Error while writing the cache - %s" % exc)
+    except Exception as exc:
+        print(ou(u"Error while writing the cache - %s" % exc))
 
 
 def collect_files(music_dir, files, visited_cache, is_supported_format):
     i = 0
     for dirpath, dirnames, filenames in os.walk(music_dir):
         for filename in filenames:
-            filepath = un(relpath(os.path.join(dirpath, filename), music_dir),
-                                  getfilesystemencoding())
+            filepath = un(
+                relpath(os.path.join(dirpath, filename), music_dir),
+                getfilesystemencoding())
             properpath = os.path.join(dirpath, filename)
             mtime = os.path.getmtime(properpath)
 
@@ -120,18 +123,19 @@ def collect_files(music_dir, files, visited_cache, is_supported_format):
             ext = os.path.splitext(filename)[1]
             if is_supported_format(ext):
                 i += 1
-                print ou(u"  [%i] %s |" % (i, filepath)),
+                print(ou(u"  [%i] %s |" % (i, filepath)), end='')
                 try:
                     tags = mutagen.File(os.path.join(music_dir, filepath))
                     if tags is None:
                         raise Exception()
                     album_id = albumid.get_album_id(tags)
-                    print ou(album_id or u"<single track>")
+                    print(ou(album_id or u"<single track>"))
                     # fields here: album_id, mtime, already_processed
                     files[filepath] = (album_id, mtime, False)
                 except:
                     # TODO: Maybe optionally abort here?
-                    print ou(u"IGNORED: unreadable file or unsupported format")
+                    print(ou(u"IGNORED: unreadable file or unsupported format"))
+
 
 def transform_cache(files):
     # transform ``files`` into lists of things to process
@@ -165,6 +169,7 @@ def update_cache(files, music_dir, tracks, album_id):
         mtime = os.path.getmtime(os.path.join(music_dir, filepath))
         files[filepath] = (album_id, mtime, True)
 
+
 @contextlib.contextmanager
 def stdstreams(stdout, stderr):
     old_stdout = sys.stdout
@@ -177,16 +182,17 @@ def stdstreams(stdout, stderr):
         sys.stdout = old_stdout
         sys.stderr = old_stderr
 
+
 def do_gain_async(queue, job_key, files, ref_level, force, dry_run, album,
-        mp3_format):
+                  mp3_format):
     output = cStringIO.StringIO()
     try:
         with stdstreams(output, output):
             if album:
-                print ou(u"%s:" % job_key[1]),
+                print(ou(u"%s:" % job_key[1]), end='')
             do_gain(files, ref_level, force, dry_run, album, mp3_format)
             print
-    except BaseException, exc:
+    except BaseException as exc:
         # We can't reliably serialise and pass the exception information to the
         # driver process so we stringify it here.
         # And yes, we want to catch KeyboardInterrupt et al.
@@ -196,29 +202,32 @@ def do_gain_async(queue, job_key, files, ref_level, force, dry_run, album,
 
 
 def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
-              force=False, dry_run=False, mp3_format=None, jobs=0,
-              stop_on_error=False):
+                force=False, dry_run=False, mp3_format=None, jobs=0,
+                stop_on_error=False):
     pool = multiprocessing.Pool(None if jobs == 0 else jobs)
     manager = multiprocessing.Manager()
     queue = manager.Queue()
     num_jobs = 0
 
-    print "Dispatching jobs ..."
+    print("Dispatching jobs ...")
     if single_tracks:
-        pool.apply_async(do_gain_async, [queue, (single_tracks, None),
-            [os.path.join(music_dir, path) for path in single_tracks],
-            ref_level, force, dry_run, False, mp3_format])
+        pool.apply_async(
+            do_gain_async, [
+                queue, (single_tracks, None),
+                [os.path.join(music_dir, path) for path in single_tracks],
+                ref_level, force, dry_run, False, mp3_format])
         num_jobs += 1
 
     for album_id, album_files in albums.iteritems():
-        #print ou(u"%s:" % album_id),
-        pool.apply_async(do_gain_async, [queue, (album_files, album_id),
-            [os.path.join(music_dir, path) for path in album_files],
-            ref_level, force, dry_run, True, mp3_format])
+        pool.apply_async(
+            do_gain_async, [
+                queue, (album_files, album_id),
+                [os.path.join(music_dir, path) for path in album_files],
+                ref_level, force, dry_run, True, mp3_format])
         num_jobs += 1
     pool.close()
 
-    print "Now waiting for results ..."
+    print("Now waiting for results ...")
     failed_jobs = []
     try:
         all_jobs = num_jobs
@@ -230,9 +239,10 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
                 failed_jobs.append((job_key, output, exc))
             else:
                 successful += 1
-                print output.strip()
-                print "Successfully finished %s of %s." % (successful, all_jobs)
-                print
+                print(output.strip())
+                print(
+                    "Successfully finished %s of %s." % (successful, all_jobs))
+                print()
             # Update cache.
             if not dry_run:
                 tracks, album_id = job_key
@@ -244,12 +254,12 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
             # terminate ends rather horribly so we just silence it.
             pass
         if len(failed_jobs) > 0:
-            print "Unfortunately, there were some errors:"
+            print("Unfortunately, there were some errors:")
             for key, output, exc in failed_jobs:
-                print output.strip()
-                print >> sys.stderr, ou(exc)
-                print
-        print "%s successful, %s failed." % (successful, len(failed_jobs))
+                print(output.strip())
+                print(ou(exc), file=sys.stderr)
+                print()
+        print("%s successful, %s failed." % (successful, len(failed_jobs)))
 
 
 def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
@@ -267,7 +277,7 @@ def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
     else:
         files = {}
 
-    print "Collecting files ..."
+    print("Collecting files ...")
     # whenever this part is stopped (KeyboardInterrupt/other exception), the
     # cache is written to disk so all progress persists
     try:
@@ -285,12 +295,13 @@ def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
         albums, single_tracks = transform_cache(files)
 
         # gain everything that has survived the cleansing
-        do_gain_all(music_dir, albums, single_tracks, files, ref_level, force,
-                  dry_run, mp3_format, jobs)
+        do_gain_all(
+            music_dir, albums, single_tracks, files, ref_level, force, dry_run,
+            mp3_format, jobs)
     finally:
         write_cache(cache_file, files)
 
-    print "All finished."
+    print("All finished.")
 
 
 def collectiongain_options():
@@ -322,7 +333,7 @@ def collectiongain_options():
                          "'album' tag is present, the file is assumed to be a "
                          "single track without album; in that case, no album "
                          "gain will be calculated for that file.")
-    
+
     return opts
 
 
@@ -336,18 +347,17 @@ def collectiongain():
         optparser.error("jobs must be at least 1")
     if opts.regain:
         opts.force = opts.ignore_cache = True
-    
+
     try:
         do_collectiongain(args[0], opts.ref_level, opts.force, opts.dry_run,
                           opts.mp3_format, opts.ignore_cache, opts.jobs)
-    except Error, exc:
-        print
-        print >> sys.stderr, ou(unicode(exc))
+    except Error as exc:
+        print()
+        print(ou(unicode(exc), file=sys.stderr))
         sys.exit(1)
     except KeyboardInterrupt:
-        print "Interrupted."
+        print("Interrupted.")
 
 
 if __name__ == "__main__":
     collectiongain()
-

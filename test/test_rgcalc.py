@@ -8,7 +8,7 @@ from rgain import GainData, rgcalc, util
 # Have to set up GStreamer for all these tests.
 import gi
 gi.require_version("Gst", "1.0")
-from gi.repository import GObject, Gst
+from gi.repository import GObject, Gst  # noqa
 Gst.init([])
 
 
