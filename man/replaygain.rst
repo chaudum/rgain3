@@ -6,7 +6,6 @@
  single file Replay Gain editor
 --------------------------------
 
-:Date: DATE
 :Version: VERSION
 :Manual section: 1
 :Manual group: rgain

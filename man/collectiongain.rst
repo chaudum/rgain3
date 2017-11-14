@@ -6,7 +6,6 @@
  large scale Replay Gain calculating tool
 ------------------------------------------
 
-:Date: DATE
 :Version: VERSION
 :Manual section: 1
 :Manual group: rgain
