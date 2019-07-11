@@ -74,4 +74,4 @@ class GSTError(Exception):
             self.debug = debug
 
     def __unicode__(self):
-        return u"GST error: %s (%s)" % (self.message, self.debug)
+        return "GST error: %s (%s)" % (self.message, self.debug)

@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-from __future__ import print_function
+
 import contextlib
 import multiprocessing
-import cStringIO
+import io
 import sys
 import os.path
 try:
@@ -26,7 +26,7 @@ try:
 except ImportError:
     from md5 import new as md5
 try:
-    import cPickle as pickle
+    import pickle as pickle
 except ImportError:
     import pickle
 
@@ -51,11 +51,11 @@ def relpath(path, base):
 
 def cache_entry_valid(filepath, record):
     return (
-        isinstance(filepath, basestring) and
+        isinstance(filepath, str) and
         hasattr(record, "__getitem__") and
         hasattr(record, "__len__") and
         len(record) == 3 and
-        (isinstance(record[0], basestring) or record[0] is None) and
+        (isinstance(record[0], str) or record[0] is None) and
         (isinstance(record[1], int) or isinstance(record[1], float)) and
         isinstance(record[2], bool))
 
@@ -66,18 +66,18 @@ def read_cache(cache_file):
             with open(cache_file, "rb") as f:
                 cache = pickle.load(f)
                 if not isinstance(cache, tuple) or len(cache) != 2:
-                    print(ou(u"Invalid cache, ignoring it"))
+                    print(ou("Invalid cache, ignoring it"))
                     return {}
                 cache_version = cache[0]
                 if cache_version != CURRENT_CACHE_VERSION:
-                    print(ou(u"Old cache format, ignoring it"))
+                    print(ou("Old cache format, ignoring it"))
                     return {}
                 files = cache[1]
                 if not isinstance(files, dict):
-                    print(ou(u"Invalid cache, ignoring it"))
+                    print(ou("Invalid cache, ignoring it"))
                     return {}
                 to_remove = set()
-                for filepath, record in files.iteritems():
+                for filepath, record in files.items():
                     if not cache_entry_valid(filepath, record):
                         to_remove.add(filepath)
                 for filepath in to_remove:
@@ -86,7 +86,7 @@ def read_cache(cache_file):
                 return files
         except Exception as exc:
             print(ou(
-                u"Error while reading the cache, continuing without it - %s" %
+                "Error while reading the cache, continuing without it - %s" %
                 (exc,)))
     return {}
 
@@ -99,7 +99,7 @@ def write_cache(cache_file, files):
         with open(cache_file, "wb") as f:
             pickle.dump((CURRENT_CACHE_VERSION, files), f, 2)
     except Exception as exc:
-        print(ou(u"Error while writing the cache - %s" % exc))
+        print(ou("Error while writing the cache - %s" % exc))
 
 
 def collect_files(music_dir, files, visited_cache, is_supported_format):
@@ -123,32 +123,32 @@ def collect_files(music_dir, files, visited_cache, is_supported_format):
             ext = os.path.splitext(filename)[1]
             if is_supported_format(ext):
                 i += 1
-                print(ou(u"  [%i] %s |" % (i, filepath)), end='')
+                print(ou("  [%i] %s |" % (i, filepath)), end='')
                 try:
                     tags = mutagen.File(os.path.join(music_dir, filepath))
                     if tags is None:
                         raise Exception()
                     album_id = albumid.get_album_id(tags)
-                    print(ou(album_id or u"<single track>"))
+                    print(ou(album_id or "<single track>"))
                     # fields here: album_id, mtime, already_processed
                     files[filepath] = (album_id, mtime, False)
                 except:
                     # TODO: Maybe optionally abort here?
-                    print(ou(u"IGNORED: unreadable file or unsupported format"))
+                    print(ou("IGNORED: unreadable file or unsupported format"))
 
 
 def transform_cache(files):
     # transform ``files`` into lists of things to process
     albums = {}
     single_tracks = []
-    for filepath, (album_id, mtime, processed) in files.iteritems():
+    for filepath, (album_id, mtime, processed) in files.items():
         if album_id is not None:
             albums.setdefault(album_id, []).append(filepath)
         else:
             single_tracks.append(filepath)
 
     # purge anything that's marked as processed
-    for album_id, album_files in albums.items():
+    for album_id, album_files in list(albums.items()):
         keep = False
         for filepath in album_files:
             if not files[filepath][2]:
@@ -185,18 +185,18 @@ def stdstreams(stdout, stderr):
 
 def do_gain_async(queue, job_key, files, ref_level, force, dry_run, album,
                   mp3_format):
-    output = cStringIO.StringIO()
+    output = io.StringIO()
     try:
         with stdstreams(output, output):
             if album:
-                print(ou(u"%s:" % job_key[1]), end='')
+                print(ou("%s:" % job_key[1]), end='')
             do_gain(files, ref_level, force, dry_run, album, mp3_format)
-            print
+            print()
     except BaseException as exc:
         # We can't reliably serialise and pass the exception information to the
         # driver process so we stringify it here.
         # And yes, we want to catch KeyboardInterrupt et al.
-        queue.put((job_key, output.getvalue(), unicode(exc)))
+        queue.put((job_key, output.getvalue(), str(exc)))
     else:
         queue.put((job_key, output.getvalue(), None))
 
@@ -218,7 +218,7 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
                 ref_level, force, dry_run, False, mp3_format])
         num_jobs += 1
 
-    for album_id, album_files in albums.iteritems():
+    for album_id, album_files in albums.items():
         pool.apply_async(
             do_gain_async, [
                 queue, (album_files, album_id),
@@ -281,11 +281,11 @@ def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
     # whenever this part is stopped (KeyboardInterrupt/other exception), the
     # cache is written to disk so all progress persists
     try:
-        visited_cache = dict.fromkeys(files.iterkeys(), False)
+        visited_cache = dict.fromkeys(iter(files.keys()), False)
         collect_files(music_dir, files, visited_cache,
                       rgio.BaseFormatsMap(mp3_format).is_supported_format)
         # clean cache
-        for filepath, visited in visited_cache.items():
+        for filepath, visited in list(visited_cache.items()):
             if not visited:
                 del visited_cache[filepath]
                 del files[filepath]
@@ -353,7 +353,7 @@ def collectiongain():
                           opts.mp3_format, opts.ignore_cache, opts.jobs)
     except Error as exc:
         print()
-        print(ou(unicode(exc), file=sys.stderr))
+        print(ou(str(exc), file=sys.stderr))
         sys.exit(1)
     except KeyboardInterrupt:
         print("Interrupted.")
