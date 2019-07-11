@@ -299,6 +299,7 @@ class MP3DefaultTagReaderWriter(BaseTagReaderWriter):
         self.rgorg.write_gain(filename, track_gain, album_gain)
         self.rva2.write_gain(filename, track_gain, album_gain)
 
+
 GAIN_EPSILON = 0.1
 PEAK_EPSILON = 0.001
 REF_LEVEL_EPSILON = 0.1

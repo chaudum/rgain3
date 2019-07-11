@@ -79,11 +79,12 @@ class ReplayGain(GObject.GObject):
     }
 
     def __init__(self, files, force=False, ref_lvl=89):
-        # TODO: force is apparently unused now. Should remove it in a cleanup.
+        super().__init__()
         GObject.GObject.__init__(self)
-        encoding = util.getfilesystemencoding()
-        self.files = [f.encode(encoding) for f in files]
+        self.files = files
         self.ref_lvl = ref_lvl
+
+        # TODO: force is apparently unused now. Should remove it in a cleanup.
 
         self._setup_pipeline()
         self._setup_rg_elem()
@@ -192,6 +193,7 @@ class ReplayGain(GObject.GObject):
         # that all file names passed to it are encoded in the system encoding).
         # That way, people on non-UTF-8 systems or with non-UTF-8 file names can
         # still force all file name processing into a different encoding.
+
         self.src.set_property("location", fname)
         self._current_file = fname
         self.emit("track-started", fname)

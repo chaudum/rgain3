@@ -215,7 +215,7 @@ def replaygain():
             do_gain(args, opts.ref_level, opts.force, opts.dry_run, opts.album,
                     opts.mp3_format)
         except Error as exc:
-            print()
+            print("")
             print(
                 ou(str(exc)), file=sys.stderr)
             sys.exit(1)
