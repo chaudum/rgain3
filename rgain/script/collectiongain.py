@@ -21,14 +21,8 @@ import multiprocessing
 import io
 import sys
 import os.path
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import new as md5
-try:
-    import pickle as pickle
-except ImportError:
-    import pickle
+import pickle
+from hashlib import md5
 
 import mutagen
 
@@ -132,7 +126,7 @@ def collect_files(music_dir, files, visited_cache, is_supported_format):
                     print(ou(album_id or "<single track>"))
                     # fields here: album_id, mtime, already_processed
                     files[filepath] = (album_id, mtime, False)
-                except:
+                except Exception:
                     # TODO: Maybe optionally abort here?
                     print(ou("IGNORED: unreadable file or unsupported format"))
 
@@ -191,7 +185,7 @@ def do_gain_async(queue, job_key, files, ref_level, force, dry_run, album,
             if album:
                 print(ou("%s:" % job_key[1]), end='')
             do_gain(files, ref_level, force, dry_run, album, mp3_format)
-            print()
+            print("")
     except BaseException as exc:
         # We can't reliably serialise and pass the exception information to the
         # driver process so we stringify it here.
@@ -242,7 +236,7 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
                 print(output.strip())
                 print(
                     "Successfully finished %s of %s." % (successful, all_jobs))
-                print()
+                print("")
             # Update cache.
             if not dry_run:
                 tracks, album_id = job_key
@@ -258,7 +252,7 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
             for key, output, exc in failed_jobs:
                 print(output.strip())
                 print(ou(exc), file=sys.stderr)
-                print()
+                print("")
         print("%s successful, %s failed." % (successful, len(failed_jobs)))
 
 
@@ -352,7 +346,7 @@ def collectiongain():
         do_collectiongain(args[0], opts.ref_level, opts.force, opts.dry_run,
                           opts.mp3_format, opts.ignore_cache, opts.jobs)
     except Error as exc:
-        print()
+        print("")
         print(ou(str(exc), file=sys.stderr))
         sys.exit(1)
     except KeyboardInterrupt:

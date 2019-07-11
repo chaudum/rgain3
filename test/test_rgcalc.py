@@ -61,16 +61,29 @@ class TestReplayGain(unittest.TestCase):
         tracks = [os.path.join(DATA_PATH, "no-tags.flac"),
                   os.path.join(DATA_PATH, "no-tags.mp3")]
         rg = rgcalc.ReplayGain(tracks)
+
         events = []
+        loop = GObject.MainLoop()
 
         def event(*args):
+            """
+            Collect signals received from analysis.
+            """
             events.append(list(args))
 
-        loop = GObject.MainLoop()
+        def assert_not_called(*args):
+            """
+            The test must not receive any error signals!
+            """
+            loop.quit()
+            print(args)
+            assert False
+
         with util.gobject_signals(
                 rg,
-                ("track_started", event),
-                ("track_finished", event),
+                ("error", assert_not_called),
+                ("track-started", event),
+                ("track-finished", event),
                 ("all-finished", lambda *args: loop.quit())):
             rg.start()
             loop.run()
