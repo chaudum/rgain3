@@ -1,5 +1,9 @@
+**This repository is a fork of Felix Krull's rgain repository on Bitbucket
+which aims to port the codebase to a modern Python 3 version.**
+
 rgain -- ReplayGain tools and Python library
 ============================================
+
 This Python package provides modules to read, write and calculate Replay Gain
 as well as 2 scripts that utilize these modules to do Replay Gain.
 
@@ -9,14 +13,13 @@ different audio files. I won't lay it all out for you here, go read it yourself.
 
 [1] http://replaygain.org
 
-
 NOTE: rgain is currently not being developed; for more information or if you'd
 like to help remedying this situation, see:
 https://bitbucket.org/fk/rgain/issues/26/wanted-new-maintainer
 
-
 Requirements
 ============
+
 - Python 2.6 or 2.7 -- http://python.org/
 - Mutagen -- http://code.google.com/p/mutagen/
 - GStreamer 1.0 -- http://gstreamer.org/
@@ -34,6 +37,7 @@ use.
 
 Installation
 ============
+
 Just install it like any other Python package: unpack, then (as root/with
 **sudo**)::
 
@@ -41,6 +45,7 @@ Just install it like any other Python package: unpack, then (as root/with
 
 **replaygain**
 ==============
+
 This is a program like, say, **vorbisgain** or **mp3gain**, the difference
 being that instead of supporting a mere one format, it supports several:
 
@@ -60,6 +65,7 @@ There are some options; see them by running::
 
 **collectiongain**
 ==================
+
 This program is designed to apply Replay Gain to whole music collections, plus
 the ability to simply add new files, run **collectiongain** and have it
 replay-gain those files without asking twice.
@@ -153,62 +159,13 @@ behaviour. Possible choices with this switch are:
   this file does not contain valid (read: consistent) Replay Gain information.
 
 [1] http://mp3gain.sourceforce.net
-
 [2] http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2
-
 [3] http://foobar2000.org
-
 [4] http://code.google.com/p/quodlibet
-
-Changes
-=======
-rgain 1.3.4 (2016-05-06)
-------------------------
-- Support an additional format of MusicBrainz tags for MP3 files.
-- Album artist tags for MP3 files are now case-sensitive.
-- Fix a potential bug where custom reference levels would still store the
-  default reference level (89 dB).
-- Update readme and PyPI description re: inactivity.
-
-rgain 1.3.3 (2014-10-09)
-------------------------
-- Fixed swapped album gain and track peak tags.
-
-rgain 1.3.2 (2014-05-24)
-------------------------
-- Fixed some problems with non-UTF8 file names. They should now work as long as
-  any file names touched by **rgain** match the system encoding.
-  (https://bitbucket.org/fk/rgain/issue/12/unicodedecodeerror-ascii-codec-cant-decode)
-- Misc. bug fixes.
-
-rgain 1.3.1 (2013-11-29)
-------------------------
-- Support MP4/AAC (courtesy of Yevgeny Bezman).
-
-rgain 1.3 (2013-10-28)
-----------------------
-- Work around a bug in some pygobject 3.10 releases
-  (https://bugzilla.gnome.org/show_bug.cgi?id=710447)
-- Properly recognise file extensions even with different capitalisation.
-- Overhaul album ID algorithm to be hopefully better at grouping files that
-  belong to an album and, conversely, not mis-grouping files. Note that this
-  change will invalidate any cache files you might still have so your entire
-  collection will be re-scanned next time you run **collectiongain**.
-- Assorted bug fixes.
-
-rgain 1.2.1 (2013-10-18)
-------------------------
-- Fix issue with reading MP3 reference loudness tags.
-
-rgain 1.2 (2013-05-04)
-----------------------
-- Port to GStreamer 1.0.
-- Support default GStreamer command-line options for **replaygain** and
-  **collectiongain**. All known GStreamer options can be listed by using the
-  **--help-gst** flag.
 
 Copyright
 =========
+
 With the exception of the manpages, all files are::
 
  Copyright (c) 2009-2015 Felix Krull <f_krull@gmx.de>
