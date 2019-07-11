@@ -1,0 +1,9 @@
+*.py[co]
+*.bak
+
+env/
+dist/
+build/
+*.egg-info/
+.mypy_cache/
+__pycache__/
