@@ -1,24 +1,21 @@
 **This repository is a fork of Felix Krull's rgain repository on Bitbucket
 which aims to port the codebase to a modern Python 3 version.**
 
-rgain -- ReplayGain tools and Python library
-============================================
+# rgain -- ReplayGain tools and Python library
 
 This Python package provides modules to read, write and calculate Replay Gain
 as well as 2 scripts that utilize these modules to do Replay Gain.
 
-Replay Gain [1] is a proposed standard (and has been for some time -- but it's
+[Replay Gain][1] is a proposed standard (and has been for some time -- but it's
 widely accepted) that's designed to solve the problem of varying volumes between
 different audio files. I won't lay it all out for you here, go read it yourself.
 
-[1] http://replaygain.org
 
-NOTE: rgain is currently not being developed; for more information or if you'd
+**NOTE:** rgain is currently not being developed; for more information or if you'd
 like to help remedying this situation, see:
 https://bitbucket.org/fk/rgain/issues/26/wanted-new-maintainer
 
-Requirements
-============
+## Requirements
 
 - Python 2.6 or 2.7 -- http://python.org/
 - Mutagen -- http://code.google.com/p/mutagen/
@@ -26,25 +23,27 @@ Requirements
 - PyGObject -- https://live.gnome.org/PyGObject
 - python-docutils for the manpages -- http://docutils.sourceforge.net/
 
-To install these dependencies on Debian or Ubuntu (12.10 or newer)::
+To install these dependencies on Debian or Ubuntu (12.10 or newer):
 
- # apt-get install python python-mutagen python-docutils python-gi \
-   gir1.2-gstreamer-1.0 libgstreamer1.0-0 gstreamer1.0-plugins-base \
-   gstreamer1.0-plugins-good
+ ```console
+$ apt-get install python python-mutagen python-docutils python-gi \
+    gir1.2-gstreamer-1.0 libgstreamer1.0-0 gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good
+```
 
 You will also need GStreamer decoding plugins for any audio formats you want to
 use.
 
-Installation
-============
+## Installation
 
 Just install it like any other Python package: unpack, then (as root/with
-**sudo**)::
+**sudo**):
 
- # python setup.py install
+ ```console
+$ python setup.py install
+ ```
 
-**replaygain**
-==============
+## `replaygain`
 
 This is a program like, say, **vorbisgain** or **mp3gain**, the difference
 being that instead of supporting a mere one format, it supports several:
@@ -55,28 +54,35 @@ being that instead of supporting a mere one format, it supports several:
 - MP4 (commonly using the AAC codec)
 - MP3
 
-Basic usage is simple::
+Basic usage is simple:
 
- $ replaygain AUDIOFILE1 AUDIOFILE2 ...
+```console
+$ replaygain AUDIOFILE1 AUDIOFILE2 ...
+```
 
-There are some options; see them by running::
+There are some options; see them by running:
 
- $ replaygain --help
+```console
+$ replaygain --help
+```
 
-**collectiongain**
-==================
+## `collectiongain`
 
 This program is designed to apply Replay Gain to whole music collections, plus
 the ability to simply add new files, run **collectiongain** and have it
 replay-gain those files without asking twice.
 
-To use it, simply run::
+To use it, simply run:
 
- $ collectiongain PATH_TO_MUSIC
+```console
+$ collectiongain PATH_TO_MUSIC
+```
 
-and re-run it whenever you add new files. Run::
+and re-run it whenever you add new files. Run:
 
- $ collectiongain --help
+```console
+$ collectiongain --help
+```
 
 to see possible options.
 
@@ -120,15 +126,15 @@ considered to be one album (duh) for the calculation of album gain. If only one
 file of an album is missing gain information, the whole album will be
 recalculated to make sure the data is up-to-date.
 
-MP3 formats
-===========
+## MP3 formats
+
 Proper Replay Gain support for MP3 files is a bit of a mess: on the one hand,
-there is the **mp3gain** application [1] which was relatively widely used (I
+there is the **mp3gain** [application][2] which was relatively widely used (I
 don't know if it still is) -- it directly modifies the audio data which has the
 advantage that it works with pretty much any player, but it also means you have
 to decide ahead of time whether you want track gain or album gain. Besides, it's
 just not very elegant. On the other hand, there are at least two commonly used
-ways to store proper Replay Gain information in ID3v2 tags [2].
+ways [to store proper Replay Gain information in ID3v2 tags][3].
 
 Now, in general you don't have to worry about this when using this package: by
 default, **replaygain** and **collectiongain** will read and write Replay Gain
@@ -140,12 +146,12 @@ behaviour. Possible choices with this switch are:
 *replaygain.org* (alias: *fb2k*)
   Replay Gain information is stored in ID3v2 TXXX frames. This format is
   specified on the replaygain.org website as the recommended format for MP3
-  files. Notably, this format is also used by the foobar2000 music player for
-  Windows [3].
+  files. Notably, this format is also used by the [foobar2000 music player for
+  Windows][4].
 *legacy* (alias: *ql*)
   Replay Gain information is stored in ID3v2.4 RVA2 frames. This format is
   described as "legacy" by replaygain.org; however, it is still the primary
-  format for at least the Quod Libet music player [4] and possibly others. It
+  format for at least the [Quod Libet music player][5] and possibly others. It
   should be noted that this format does not support volume adjustments of more
   than 64 dB: if the calculated gain value is smaller than -64 dB or greater
   than or equal to +64 dB, it is clamped to these limit values.
@@ -158,11 +164,6 @@ behaviour. Possible choices with this switch are:
   However, if they don't match, no Replay Gain data is returned to signal that
   this file does not contain valid (read: consistent) Replay Gain information.
 
-[1] http://mp3gain.sourceforce.net
-[2] http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2
-[3] http://foobar2000.org
-[4] http://code.google.com/p/quodlibet
-
 Copyright
 =========
 
@@ -174,3 +175,11 @@ The manpages were originally written for the Debian project and are::
 
  Copyright (c) 2011 Simon Chopin <chopin.simon@gmail.com>
  Copyright (c) 2012-2015 Felix Krull <f_krull@gmx.de>
+
+
+[1]: http://replaygain.org
+[2]: http://mp3gain.sourceforce.net
+[3]: http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2
+[4]: http://foobar2000.org
+[5]: http://code.google.com/p/quodlibet
+
