@@ -27,7 +27,7 @@ from rgain import GainData
 
 class AudioFormatError(Exception):
     def __init__(self, filename):
-        Exception.__init__(self, u"Did not understand file: %s" % filename)
+        Exception.__init__(self, "Did not understand file: %s" % filename)
 
 
 # some generic helper functions
@@ -71,11 +71,11 @@ class BaseTagReaderWriter(object):
 # match the rg.org specification for Ogg (at least Vorbis), Flac and WavPack
 # files
 class SimpleTagReaderWriter(BaseTagReaderWriter):
-    TRACK_GAIN_TAG = u"replaygain_track_gain"
-    TRACK_PEAK_TAG = u"replaygain_track_peak"
-    ALBUM_GAIN_TAG = u"replaygain_album_gain"
-    ALBUM_PEAK_TAG = u"replaygain_album_peak"
-    REF_LOUDNESS_TAGS = [u"replaygain_reference_loudness"]
+    TRACK_GAIN_TAG = "replaygain_track_gain"
+    TRACK_PEAK_TAG = "replaygain_track_peak"
+    ALBUM_GAIN_TAG = "replaygain_album_gain"
+    ALBUM_PEAK_TAG = "replaygain_album_peak"
+    REF_LOUDNESS_TAGS = ["replaygain_reference_loudness"]
 
     # default behaviour; override in a subclass if necessary, e.g. for MP3
     def _get_tags_object(self, filename):
@@ -138,13 +138,13 @@ class SimpleTagReaderWriter(BaseTagReaderWriter):
         tags.save()
 
     def _dump_gain(self, gain):
-        return u"%.8f dB" % gain
+        return "%.8f dB" % gain
 
     def _dump_peak(self, peak):
-        return u"%.8f" % peak
+        return "%.8f" % peak
 
     def _dump_ref_level(self, ref_level):
-        return u"%i dB" % ref_level
+        return "%i dB" % ref_level
 
 
 # MP4 support
@@ -173,19 +173,19 @@ class MP4TagReaderWriter(SimpleTagReaderWriter):
 # MP3 support base class
 class MP3TagReaderWriter(SimpleTagReaderWriter):
     _EXTRA_TXXX_TAGS = [
-        u"replaygain_track_gain",
-        u"replaygain_track_peak",
-        u"replaygain_album_gain",
-        u"replaygain_album_peak",
-        u"replaygain_reference_loudness",
-        u"QuodLibet::replaygain_reference_loudness",
+        "replaygain_track_gain",
+        "replaygain_track_peak",
+        "replaygain_album_gain",
+        "replaygain_album_peak",
+        "replaygain_reference_loudness",
+        "QuodLibet::replaygain_reference_loudness",
     ]
 
     class _ReplaygainEasyID3(EasyID3):
         pass
 
     for key in _EXTRA_TXXX_TAGS:
-        _ReplaygainEasyID3.RegisterTXXXKey(u"TXXX:%s" % key, key)
+        _ReplaygainEasyID3.RegisterTXXXKey("TXXX:%s" % key, key)
 
     def _get_tags_object(self, filename):
         return self._ReplaygainEasyID3(filename)
@@ -195,11 +195,11 @@ class MP3TagReaderWriter(SimpleTagReaderWriter):
 # http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2
 # and as implemented by at least foobar2000.
 class MP3rgorgTagReaderWriter(MP3TagReaderWriter):
-    TRACK_GAIN_TAG = u"TXXX:replaygain_track_gain"
-    TRACK_PEAK_TAG = u"TXXX:replaygain_track_peak"
-    ALBUM_GAIN_TAG = u"TXXX:replaygain_album_gain"
-    ALBUM_PEAK_TAG = u"TXXX:replaygain_album_peak"
-    REF_LOUDNESS_TAGS = [u"TXXX:replaygain_reference_loudness"]
+    TRACK_GAIN_TAG = "TXXX:replaygain_track_gain"
+    TRACK_PEAK_TAG = "TXXX:replaygain_track_peak"
+    ALBUM_GAIN_TAG = "TXXX:replaygain_album_gain"
+    ALBUM_PEAK_TAG = "TXXX:replaygain_album_peak"
+    REF_LOUDNESS_TAGS = ["TXXX:replaygain_reference_loudness"]
 
 
 # clamp RVA2 values to certain limits so that they do not overflow
@@ -251,16 +251,16 @@ def clamp_gain_data(gain_data):
 # http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2
 class MP3RVA2TagReaderWriter(MP3TagReaderWriter):
     # EasyID3 maps these to RVA2 by default
-    TRACK_GAIN_TAG = u"replaygain_track_gain"
-    TRACK_PEAK_TAG = u"replaygain_track_peak"
-    ALBUM_GAIN_TAG = u"replaygain_album_gain"
-    ALBUM_PEAK_TAG = u"replaygain_album_peak"
+    TRACK_GAIN_TAG = "replaygain_track_gain"
+    TRACK_PEAK_TAG = "replaygain_track_peak"
+    ALBUM_GAIN_TAG = "replaygain_album_gain"
+    ALBUM_PEAK_TAG = "replaygain_album_peak"
 
     # since there's no proper reference loudness tag for the legacy format, we
     # use reasonably common TXXX tags; these were registered in the superclass
     REF_LOUDNESS_TAGS = [
-        u"TXXX:replaygain_reference_loudness",
-        u"TXXX:QuodLibet::replaygain_reference_loudness",
+        "TXXX:replaygain_reference_loudness",
+        "TXXX:QuodLibet::replaygain_reference_loudness",
     ]
 
     def _dump_gain(self, gain):

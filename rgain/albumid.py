@@ -117,6 +117,6 @@ def get_album_id(tags):
         if artist_part is None:
             return album
         else:
-            return u"%s - %s" % (artist_part, album)
+            return "%s - %s" % (artist_part, album)
     else:
         return None

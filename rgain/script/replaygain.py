@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-from __future__ import print_function
+
 import sys
 import os.path
 
@@ -74,7 +74,7 @@ def do_gain(files, ref_level=89, force=False, dry_run=False, album=True,  # noqa
     newfiles = []
     for filename in files:
         if not formats_map.is_supported_format(os.path.splitext(filename)[1]):
-            print(ou(u"%s: not supported, ignoring it" % filename))
+            print(ou("%s: not supported, ignoring it" % filename))
         else:
             newfiles.append(filename)
     files = newfiles
@@ -83,11 +83,11 @@ def do_gain(files, ref_level=89, force=False, dry_run=False, album=True,  # noqa
         print("Checking for Replay Gain information ...")
         newfiles = []
         for filename in files:
-            print(ou(u"  %s:" % filename), end='')
+            print(ou("  %s:" % filename), end='')
             try:
                 trackdata, albumdata = formats_map.read_gain(filename)
             except Exception as exc:
-                raise Error(u"%s: %s" % (filename, exc))
+                raise Error("%s: %s" % (filename, exc))
             else:
                 if trackdata and albumdata:
                     print("track and album")
@@ -119,7 +119,7 @@ def do_gain(files, ref_level=89, force=False, dry_run=False, album=True,  # noqa
         if album:
             print("  Album gain: %.2f dB" % (albumdata.gain,))
     except Exception as exc:
-        raise Error(u"Error while calculating gain - %s" % exc)
+        raise Error("Error while calculating gain - %s" % exc)
 
     if not album:
         albumdata = None
@@ -127,12 +127,12 @@ def do_gain(files, ref_level=89, force=False, dry_run=False, album=True,  # noqa
     # write gain
     if not dry_run:
         print("Writing Replay Gain information to files ...")
-        for filename, trackdata in tracks_data.iteritems():
-            print(ou(u"  %s:" % filename), end='')
+        for filename, trackdata in tracks_data.items():
+            print(ou("  %s:" % filename), end='')
             try:
                 formats_map.write_gain(filename, trackdata, albumdata)
             except Exception as exc:
-                raise Error(u"%s: %s" % (filename, exc))
+                raise Error("%s: %s" % (filename, exc))
             else:
                 print("done")
 
@@ -217,7 +217,7 @@ def replaygain():
         except Error as exc:
             print()
             print(
-                ou(unicode(exc)), file=sys.stderr)
+                ou(str(exc)), file=sys.stderr)
             sys.exit(1)
         except KeyboardInterrupt:
             print("Interrupted.")

@@ -68,7 +68,7 @@ class Error(Exception):
         if not self._output_full_exception():
             return Exception.__unicode__(self)
         else:
-            return unicode(u"".join(traceback.format_exception(*self.exc_info)))
+            return str("".join(traceback.format_exception(*self.exc_info)))
 
     def _output_full_exception(self):
         return self.exc_info[0] not in [

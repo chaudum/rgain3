@@ -120,9 +120,9 @@ class ReplayGain(GObject.GObject):
         if elem is None:
             # that element couldn't be created, maybe because plugins are
             # missing?
-            raise MissingPluginsError(u"failed to construct pipeline (did you "
-                                      u"install all necessary GStreamer "
-                                      u"plugins?)")
+            raise MissingPluginsError("failed to construct pipeline (did you "
+                                      "install all necessary GStreamer "
+                                      "plugins?)")
         else:
             return elem
 
