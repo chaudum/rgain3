@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+
 
 from datetime import date
 import os
@@ -115,7 +115,10 @@ setup(
         "Intended Audience :: End Users/Desktop",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License (GPL)",
-        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Topic :: Multimedia :: Sound/Audio :: Analysis",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
@@ -137,7 +140,8 @@ https://bitbucket.org/fk/rgain/issues/26/wanted-new-maintainer
 
     packages=["rgain", "rgain.script"],
     scripts=["scripts/replaygain", "scripts/collectiongain"],
-    requires=["pygobject", "mutagen"],
+    install_requires=["pygobject", "mutagen"],
+    python_requires=">=3.5",
 
     **manpages_args
 )
