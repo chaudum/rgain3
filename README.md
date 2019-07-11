@@ -17,7 +17,7 @@ https://bitbucket.org/fk/rgain/issues/26/wanted-new-maintainer
 
 ## Requirements
 
-- Python 2.6 or 2.7 -- http://python.org/
+- Python 3.5, 3.6 or 3.7 -- http://python.org/
 - Mutagen -- http://code.google.com/p/mutagen/
 - GStreamer 1.0 -- http://gstreamer.org/
 - PyGObject -- https://live.gnome.org/PyGObject
@@ -26,7 +26,7 @@ https://bitbucket.org/fk/rgain/issues/26/wanted-new-maintainer
 To install these dependencies on Debian or Ubuntu (12.10 or newer):
 
  ```console
-$ apt-get install python python-mutagen python-docutils python-gi \
+$ apt-get install python3 python3-mutagen python3-docutils python3-gi \
     gir1.2-gstreamer-1.0 libgstreamer1.0-0 gstreamer1.0-plugins-base \
     gstreamer1.0-plugins-good
 ```
