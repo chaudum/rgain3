@@ -1,14 +1,15 @@
 from __future__ import unicode_literals
+
 import os.path
 import unittest
 
-from rgain import GainData, rgcalc, util
-
-
 # Have to set up GStreamer for all these tests.
 import gi
-gi.require_version("Gst", "1.0")
 from gi.repository import GObject, Gst  # noqa
+
+from rgain import GainData, rgcalc, util
+
+gi.require_version("Gst", "1.0")
 Gst.init([])
 
 
