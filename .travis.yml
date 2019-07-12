@@ -1,0 +1,34 @@
+notifications:
+  email: false
+
+code: &code
+  stage: "Code"
+  dist: xenial
+  language: python
+  cache: pip
+  sudo:
+    false
+  install:
+    - sudo apt-get update
+    - sudo apt-get install -y gcc libgirepository1.0-dev libcairo2-dev pkg-config gir1.2-gtk-3.0 python3-dev python3-gst-1.0 gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-tools liquidsoap silan
+    - pip install pycairo pygobject
+    - pip install -r test-requirements.txt
+    - pip install -e .
+    - pip install pytest-cov
+  script:
+    - pytest --cov rgain -vvv
+  after_success:
+    - coveralls
+    - codecov
+
+matrix:
+  include:
+    - <<: *code
+      name: "Python 3.5"
+      python: 3.5
+    - <<: *code
+      name: "Python 3.6"
+      python: 3.6
+    - <<: *code
+      name: "Python 3.7"
+      python: 3.7
