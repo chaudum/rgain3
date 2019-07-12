@@ -17,18 +17,24 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import contextlib
-import multiprocessing
 import io
-import sys
+import multiprocessing
 import os.path
 import pickle
+import sys
 from hashlib import md5
 
 import mutagen
 
 from rgain import albumid, rgio
 from rgain.script import (
-    Error, common_options, getfilesystemencoding, init_gstreamer, ou, un)
+    Error,
+    common_options,
+    getfilesystemencoding,
+    init_gstreamer,
+    ou,
+    un,
+)
 from rgain.script.replaygain import do_gain
 
 CURRENT_CACHE_VERSION = 1

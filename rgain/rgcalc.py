@@ -20,14 +20,6 @@
 documentation or use the ``calculate`` function.
 """
 
-import gi
-gi.require_version('Gst', '1.0')
-from gi.repository import GObject, Gst  # noqa
-
-from rgain import GainData, GSTError, util  # noqa
-
-# Initialise threading.
-GObject.threads_init()
 # Also initialise threading. This hack is necessary because while threads_init
 # was originally deprecated in pygobject 3.10 and turned into a no-op, that
 # wouldn't initialise Python threading properly when an introspection-loaded
@@ -36,6 +28,17 @@ GObject.threads_init()
 # dummy thread to force Python to initialise threading to accomodate these
 # broken pygobject versions.
 import threading  # noqa
+
+import gi
+from gi.repository import GObject, Gst  # noqa
+
+from rgain import GainData, GSTError, util  # noqa
+
+gi.require_version('Gst', '1.0')
+
+
+# Initialise threading.
+GObject.threads_init()
 threading.Thread(target=lambda: None).start()
 
 

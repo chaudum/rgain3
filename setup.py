@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 
 
-from datetime import date
 import os
 import sys
 import tempfile
+from datetime import date
+from distutils.command.build import build
+
+from rgain import __version__
 
 try:
     from setuptools import Command, Distribution, setup
@@ -13,9 +16,7 @@ except ImportError:
     print("setuptools unavailable, falling back to distutils.",
           file=sys.stderr)
     from distutils.core import Command, Distribution, setup
-from distutils.command.build import build
 
-from rgain import __version__
 
 try:
     import docutils.core

@@ -16,14 +16,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import sys
 import os.path
+import sys
 
 from gi.repository import GObject
 
 from rgain import rgcalc, rgio, util
 from rgain.script import (
-    Error, common_options, getfilesystemencoding, init_gstreamer, ou, un)
+    Error,
+    common_options,
+    getfilesystemencoding,
+    init_gstreamer,
+    ou,
+    un,
+)
 
 
 # calculate the gain for the given files

@@ -8,7 +8,6 @@ from mutagen.id3 import ID3FileType
 
 import rgain.albumid
 
-
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
 
 

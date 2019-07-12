@@ -17,18 +17,19 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import sys
-from optparse import OptionParser
 import traceback
+from optparse import OptionParser
 
 import gi
-gi.require_version("Gst", "1.0")
 from gi.repository import Gst  # noqa
 
-from rgain import __version__  # noqa
 import rgain.rgio  # noqa
-
+from rgain import __version__  # noqa
 # we re-export this function for convenience and compatibility
 from rgain.util import getfilesystemencoding  # noqa
+
+gi.require_version("Gst", "1.0")
+
 
 __all__ = [
     "getfilesystemencoding",
