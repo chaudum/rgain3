@@ -23,8 +23,11 @@ RUN set -x \
           silan \
       && apt-get clean
 
-COPY test-requirements.txt /src/
-RUN pip install pycairo pygobject \
-      && pip install -r test-requirements.txt
+COPY requirements.txt /src
+COPY test-requirements.txt /src
+COPY man-requirements.txt /src
+RUN pip install -r requirements.txt \
+      && pip install -r test-requirements.txt \
+      && pip freeze
 
 ENTRYPOINT ["/src/tests.sh"]

@@ -1,21 +1,28 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
+#!/usr/env/bin/ python3
 
 import os
 import sys
 import tempfile
 from datetime import date
 from distutils.command.build import build
+from pathlib import Path
 
 from rgain import __version__
 
 try:
     from setuptools import Command, Distribution, setup
 except ImportError:
-    print("setuptools unavailable, falling back to distutils.",
-          file=sys.stderr)
+    print("setuptools unavailable, falling back to distutils.", file=sys.stderr)
     from distutils.core import Command, Distribution, setup
+
+
+def read(filename: str):
+    """
+    Read contents of file relative to setup.py
+    """
+    pth = Path(__file__).parent / filename
+    with pth.open() as fp:
+        return fp.read()
 
 
 try:
@@ -102,6 +109,7 @@ except ImportError:
     print("docutils not found, manpages won't be generated.", file=sys.stderr)
     manpages_args = {}
 
+
 setup(
     name="rgain",
     version=__version__,
@@ -141,7 +149,11 @@ https://bitbucket.org/fk/rgain/issues/26/wanted-new-maintainer
 
     packages=["rgain", "rgain.script"],
     scripts=["scripts/replaygain", "scripts/collectiongain"],
-    install_requires=["pygobject", "mutagen"],
+    install_required=read("requirements.txt"),
+    extras_require={
+        "man": read("man-requirements.txt"),
+        "test": read("test-requirements.txt"),
+    },
     python_requires=">=3.5",
 
     **manpages_args
