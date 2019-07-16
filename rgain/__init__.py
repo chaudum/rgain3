@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) 2009-2015 Felix Krull <f_krull@gmx.de>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,15 +14,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import enum
+
 from .version import __version__
 
 __all__ = ["__version__", "GainData"]
 
 
-class GainData(object):
+class GainType(enum.Enum):
     TP_UNDEFINED = "TP_UNDEFINED"
     TP_TRACK = "TP_TRACK"
     TP_ALBUM = "TP_ALBUM"
+
+
+class GainData(object):
 
     """A class that contains Replay Gain data.
 
@@ -34,7 +37,11 @@ class GainData(object):
      - ``ref_level``: the used reference level (in dB)
     """
 
-    def __init__(self, gain, peak=1.0, ref_level=89, gain_type=TP_UNDEFINED):
+    def __init__(self,
+                 gain,
+                 peak=1.0,
+                 ref_level=89,
+                 gain_type=GainType.TP_UNDEFINED):
         self.gain = gain
         self.peak = peak
         self.ref_level = ref_level

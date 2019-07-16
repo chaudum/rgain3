@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) 2009-2015 Felix Krull <f_krull@gmx.de>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -32,7 +30,7 @@ import threading  # noqa
 import gi
 from gi.repository import GObject, Gst  # noqa
 
-from rgain import GainData, GSTError, util  # noqa
+from rgain import GainData, GainType, GSTError, util  # noqa
 
 gi.require_version('Gst', '1.0')
 
@@ -97,7 +95,7 @@ class ReplayGain(GObject.GObject):
         # this holds all track gain data
         self.track_data = {}
         self.album_data = GainData(0, ref_level=self.ref_lvl,
-                                   gain_type=GainData.TP_ALBUM)
+                                   gain_type=GainType.TP_ALBUM)
 
     def start(self):
         """Start processing.
@@ -208,7 +206,7 @@ class ReplayGain(GObject.GObject):
         tags = msg.parse_tag()
         trackdata = self.track_data.setdefault(
             self._current_file,
-            GainData(0, ref_level=self.ref_lvl, gain_type=GainData.TP_TRACK))
+            GainData(0, ref_level=self.ref_lvl, gain_type=GainType.TP_TRACK))
 
         def handle_tag(taglist, tag, userdata):
             if tag == Gst.TAG_TRACK_GAIN:
