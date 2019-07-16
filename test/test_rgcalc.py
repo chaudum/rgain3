@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import os.path
 import unittest
 
@@ -7,7 +5,7 @@ import unittest
 import gi
 from gi.repository import GObject, Gst  # noqa
 
-from rgain import GainData, rgcalc, util
+from rgain import GainType, rgcalc, util
 
 gi.require_version("Gst", "1.0")
 Gst.init([])
@@ -29,7 +27,7 @@ class TestReplayGain(unittest.TestCase):
         self.assertAlmostEqual(a.gain, 64.82, 5)
         self.assertAlmostEqual(a.peak, 0.000244, 5)
         self.assertEqual(a.ref_level, 89)
-        self.assertEqual(a.gain_type, GainData.TP_ALBUM)
+        self.assertEqual(a.gain_type, GainType.TP_ALBUM)
 
         self.assertEqual(len(t), 1)
         for k in t:
@@ -38,7 +36,7 @@ class TestReplayGain(unittest.TestCase):
             self.assertAlmostEqual(gain.gain, 64.82, 5)
             self.assertAlmostEqual(gain.peak, 0.000244, 5)
             self.assertEqual(gain.ref_level, 89)
-            self.assertEqual(gain.gain_type, GainData.TP_TRACK)
+            self.assertEqual(gain.gain_type, GainType.TP_TRACK)
 
     def test_custom_ref_level(self):
         f = os.path.join(DATA_PATH, "no-tags.flac")
@@ -47,7 +45,7 @@ class TestReplayGain(unittest.TestCase):
         self.assertAlmostEqual(a.gain, 80.82, 5)
         self.assertAlmostEqual(a.peak, 0.000244, 5)
         self.assertEqual(a.ref_level, 105)
-        self.assertEqual(a.gain_type, GainData.TP_ALBUM)
+        self.assertEqual(a.gain_type, GainType.TP_ALBUM)
 
         self.assertEqual(len(t), 1)
         for k in t:
@@ -56,7 +54,7 @@ class TestReplayGain(unittest.TestCase):
             self.assertAlmostEqual(gain.gain, 80.82, 5)
             self.assertAlmostEqual(gain.peak, 0.000244, 5)
             self.assertEqual(gain.ref_level, 105)
-            self.assertEqual(gain.gain_type, GainData.TP_TRACK)
+            self.assertEqual(gain.gain_type, GainType.TP_TRACK)
 
     def test_track_started_finished_signals(self):
         tracks = [os.path.join(DATA_PATH, "no-tags.flac"),
