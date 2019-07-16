@@ -69,13 +69,13 @@ class ReplayGain(GObject.GObject):
     """
 
     __gsignals__ = {
-        "all-finished": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+        "all-finished": (GObject.SignalFlags.RUN_LAST, GObject.TYPE_NONE,
                          (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
-        "track-started": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+        "track-started": (GObject.SignalFlags.RUN_LAST, GObject.TYPE_NONE,
                           (GObject.TYPE_STRING,)),
-        "track-finished": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+        "track-finished": (GObject.SignalFlags.RUN_LAST, GObject.TYPE_NONE,
                            (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
-        "error": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+        "error": (GObject.SignalFlags.RUN_LAST, GObject.TYPE_NONE,
                   (GObject.TYPE_PYOBJECT,)),
     }
 
