@@ -18,26 +18,12 @@
 documentation or use the ``calculate`` function.
 """
 
-# Also initialise threading. This hack is necessary because while threads_init
-# was originally deprecated in pygobject 3.10 and turned into a no-op, that
-# wouldn't initialise Python threading properly when an introspection-loaded
-# library used threading, but the Python program didn't (see
-# https://bugzilla.gnome.org/show_bug.cgi?id=710447). Therefore, we create a
-# dummy thread to force Python to initialise threading to accomodate these
-# broken pygobject versions.
-import threading  # noqa
-
 import gi
 from gi.repository import GObject, Gst  # noqa
 
 from rgain import GainData, GainType, GSTError, util  # noqa
 
 gi.require_version('Gst', '1.0')
-
-
-# Initialise threading.
-GObject.threads_init()
-threading.Thread(target=lambda: None).start()
 
 
 class MissingPluginsError(Exception):
