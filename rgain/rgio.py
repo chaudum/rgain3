@@ -16,7 +16,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import os.path
+import abc
+import os
 import warnings
 
 import mutagen
@@ -27,7 +28,7 @@ from rgain import GainData
 
 class AudioFormatError(Exception):
     def __init__(self, filename):
-        Exception.__init__(self, "Did not understand file: %s" % filename)
+        super().__init__("Did not understand file: {}".format(filename))
 
 
 # some generic helper functions
@@ -59,12 +60,15 @@ def almost_equal(a, b, epsilon):
 
 
 # interface for ReplayGain reading/writing class
-class BaseTagReaderWriter(object):
-    def read_gain(self, filename):
-        raise NotImplementedError
+class BaseTagReaderWriter(abc.ABC):
 
+    @abc.abstractmethod
+    def read_gain(self, filename):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     def write_gain(self, filename, track_gain, album_gain):
-        raise NotImplementedError
+        raise NotImplementedError()
 
 
 # class to read and write ReplayGain data from/to simple tags. The default tags
