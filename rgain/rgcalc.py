@@ -67,7 +67,6 @@ class ReplayGain(GObject.GObject):
 
     def __init__(self, files, force=False, ref_lvl=89):
         super().__init__()
-        GObject.GObject.__init__(self)
         self.files = files
         self.ref_lvl = ref_lvl
 
