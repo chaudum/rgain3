@@ -140,7 +140,12 @@ https://bitbucket.org/fk/rgain/issues/26/wanted-new-maintainer
 """,
 
     packages=["rgain", "rgain.script"],
-    scripts=["scripts/replaygain", "scripts/collectiongain"],
+    entry_points={
+        "console_scripts": [
+            "replaygain=rgain.script.replaygain:main",
+            "collectiongain=rgain.script.collectiongain:main",
+        ]
+    },
     install_requires=["pygobject", "mutagen"],
     python_requires=">=3.5",
 

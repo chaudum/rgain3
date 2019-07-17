@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) 2009-2014 Felix Krull <f_krull@gmx.de>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -207,7 +205,7 @@ def rgain_options():
     return opts
 
 
-def replaygain():
+def main():
     init_gstreamer()
     optparser = rgain_options()
     opts, args = optparser.parse_args()
@@ -227,7 +225,3 @@ def replaygain():
             sys.exit(1)
         except KeyboardInterrupt:
             print("Interrupted.")
-
-
-if __name__ == "__main__":
-    replaygain()

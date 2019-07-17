@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) 2009-2014 Felix Krull <f_krull@gmx.de>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -337,7 +335,7 @@ def collectiongain_options():
     return opts
 
 
-def collectiongain():
+def main():
     init_gstreamer()
     optparser = collectiongain_options()
     opts, args = optparser.parse_args()
@@ -357,7 +355,3 @@ def collectiongain():
         sys.exit(1)
     except KeyboardInterrupt:
         print("Interrupted.")
-
-
-if __name__ == "__main__":
-    collectiongain()
