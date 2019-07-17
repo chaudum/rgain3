@@ -8,7 +8,11 @@ import tempfile
 from datetime import date
 from distutils.command.build import build
 
-from rgain import __version__
+from pkg_resources.extern.packaging.version import Version
+
+# a version must be PEP 440 compliant
+__version__ = Version("1.3.4")
+
 
 try:
     from setuptools import Command, Distribution, setup
@@ -104,7 +108,7 @@ except ImportError:
 
 setup(
     name="rgain",
-    version=__version__,
+    version=str(__version__),
     description="Multi-format Replay Gain utilities",
     author="Felix Krull",
     author_email="f_krull@gmx.de",
