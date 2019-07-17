@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) 2009-2015 Felix Krull <f_krull@gmx.de>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -15,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+from functools import partial
 
 from mutagen.id3 import ID3FileType
 
@@ -36,33 +36,44 @@ def _get_simple_tag(tags, mp3_keys, default_key):
     return None
 
 
-def get_musicbrainz_album_id(tags):
-    return _get_simple_tag(
-        tags,
-        ["TXXX:MusicBrainz Album Id", "TXXX:MUSICBRAINZ_ALBUMID"],
-        "musicbrainz_albumid")
+get_musicbrainz_album_id = partial(
+    _get_simple_tag,
+    mp3_keys=[
+        "TXXX:MusicBrainz Album Id",
+        "TXXX:MUSICBRAINZ_ALBUMID",
+    ],
+    default_key="musicbrainz_albumid",
+)
 
+get_musicbrainz_albumartist_id = partial(
+    _get_simple_tag,
+    mp3_keys=[
+        "TXXX:MusicBrainz Album Artist Id",
+        "TXXX:MUSICBRAINZ_ALBUMARTISTID",
+    ],
+    default_key="musicbrainz_albumartistid",
+)
 
-def get_musicbrainz_albumartist_id(tags):
-    return _get_simple_tag(
-        tags,
-        ["TXXX:MusicBrainz Album Artist Id", "TXXX:MUSICBRAINZ_ALBUMARTISTID"],
-        "musicbrainz_albumartistid")
+get_musicbrainz_artist_id = partial(
+    _get_simple_tag,
+    mp3_keys=[
+        "TXXX:MusicBrainz Artist Id",
+        "TXXX:MUSICBRAINZ_ARTISTID",
+    ],
+    default_key="musicbrainz_artistid",
+)
 
+get_album = partial(
+    _get_simple_tag,
+    mp3_keys=["TALB"],
+    default_key="album",
+)
 
-def get_musicbrainz_artist_id(tags):
-    return _get_simple_tag(
-        tags,
-        ["TXXX:MusicBrainz Artist Id", "TXXX:MUSICBRAINZ_ARTISTID"],
-        "musicbrainz_artistid")
-
-
-def get_album(tags):
-    return _get_simple_tag(tags, ["TALB"], "album")
-
-
-def get_artist(tags):
-    return _get_simple_tag(tags, ["TPE1"], "artist")
+get_artist = partial(
+    _get_simple_tag,
+    mp3_keys=["TPE1"],
+    default_key="artist",
+)
 
 
 # XXX: We're not doing case-insensitive checking anymore. Let's hope that
@@ -75,12 +86,16 @@ def get_artist(tags):
 #    the ID3 standard, this is performer, but fb2k uses it for album
 #    artist since 1.1.6, citing "compatibility with other players"; see
 #    http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:ID3_Tag_Mapping
-def get_albumartist(tags):
-    return _get_simple_tag(
-        tags,
-        ["TXXX:albumartist", "TXXX:QuodLibet::albumartist",
-         "TXXX:ALBUM ARTIST", "TPE2"],
-        "albumartist")
+get_albumartist = partial(
+    _get_simple_tag,
+    mp3_keys=[
+        "TXXX:albumartist",
+        "TXXX:QuodLibet::albumartist",
+        "TXXX:ALBUM ARTIST",
+        "TPE2",
+    ],
+    default_key="albumartist",
+)
 
 
 def _take_first_tag(tags, default, functions):
@@ -117,6 +132,6 @@ def get_album_id(tags):
         if artist_part is None:
             return album
         else:
-            return "%s - %s" % (artist_part, album)
+            return "{} - {}".format(artist_part, album)
     else:
         return None
