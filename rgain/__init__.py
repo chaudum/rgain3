@@ -27,7 +27,7 @@ class GainType(enum.Enum):
     TP_ALBUM = "TP_ALBUM"
 
 
-class GainData(object):
+class GainData:
 
     """A class that contains Replay Gain data.
 
@@ -48,12 +48,15 @@ class GainData(object):
         self.gain_type = gain_type
 
     def __str__(self):
-        return ("gain=%.2f dB; peak=%.8f; reference-level=%i dB" %
-                (self.gain, self.peak, self.ref_level))
+        return "gain={.2f} dB; peak={.8f}; reference-level={} dB".format(
+            self.gain, self.peak, self.ref_level
+        )
 
     def __repr__(self):
-        return "GainData(%s, %s, %s, %s)" % (self.gain, self.peak,
-                                             self.ref_level, self.gain_type)
+        return "{}({}, {}, {}, {})".format(
+            self.__class__.__name__,
+            self.gain, self.peak, self.ref_level, self.gain_type
+        )
 
     def __eq__(self, other):
         return isinstance(other, GainData) and (
