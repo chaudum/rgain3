@@ -27,14 +27,7 @@ from hashlib import md5
 import mutagen
 
 from rgain import albumid, rgio
-from rgain.script import (
-    Error,
-    common_options,
-    getfilesystemencoding,
-    init_gstreamer,
-    ou,
-    un,
-)
+from rgain.script import Error, common_options, init_gstreamer
 from rgain.script.replaygain import do_gain
 
 CURRENT_CACHE_VERSION = 1
@@ -66,15 +59,15 @@ def read_cache(cache_file):
             with open(cache_file, "rb") as f:
                 cache = pickle.load(f)
                 if not isinstance(cache, tuple) or len(cache) != 2:
-                    print(ou("Invalid cache, ignoring it"))
+                    print("Invalid cache, ignoring it")
                     return {}
                 cache_version = cache[0]
                 if cache_version != CURRENT_CACHE_VERSION:
-                    print(ou("Old cache format, ignoring it"))
+                    print("Old cache format, ignoring it")
                     return {}
                 files = cache[1]
                 if not isinstance(files, dict):
-                    print(ou("Invalid cache, ignoring it"))
+                    print("Invalid cache, ignoring it")
                     return {}
                 to_remove = set()
                 for filepath, record in files.items():
@@ -85,9 +78,9 @@ def read_cache(cache_file):
                     del files[filepath]
                 return files
         except Exception as exc:
-            print(ou(
+            print(
                 "Error while reading the cache, continuing without it - %s" %
-                (exc,)))
+                (exc,))
     return {}
 
 
@@ -99,16 +92,14 @@ def write_cache(cache_file, files):
         with open(cache_file, "wb") as f:
             pickle.dump((CURRENT_CACHE_VERSION, files), f, 2)
     except Exception as exc:
-        print(ou("Error while writing the cache - %s" % exc))
+        print("Error while writing the cache - %s" % exc)
 
 
 def collect_files(music_dir, files, visited_cache, is_supported_format):
     i = 0
     for dirpath, dirnames, filenames in os.walk(music_dir):
         for filename in filenames:
-            filepath = un(
-                relpath(os.path.join(dirpath, filename), music_dir),
-                getfilesystemencoding())
+            filepath = relpath(os.path.join(dirpath, filename), music_dir)
             properpath = os.path.join(dirpath, filename)
             mtime = os.path.getmtime(properpath)
 
@@ -123,18 +114,18 @@ def collect_files(music_dir, files, visited_cache, is_supported_format):
             ext = os.path.splitext(filename)[1]
             if is_supported_format(ext):
                 i += 1
-                print(ou("  [%i] %s |" % (i, filepath)), end='')
+                print("  [%i] %s |" % (i, filepath), end='')
                 try:
                     tags = mutagen.File(os.path.join(music_dir, filepath))
                     if tags is None:
                         raise Exception()
                     album_id = albumid.get_album_id(tags)
-                    print(ou(album_id or "<single track>"))
+                    print(album_id or "<single track>")
                     # fields here: album_id, mtime, already_processed
                     files[filepath] = (album_id, mtime, False)
                 except Exception:
                     # TODO: Maybe optionally abort here?
-                    print(ou("IGNORED: unreadable file or unsupported format"))
+                    print("IGNORED: unreadable file or unsupported format")
 
 
 def transform_cache(files):
@@ -189,7 +180,7 @@ def do_gain_async(queue, job_key, files, ref_level, force, dry_run, album,
     try:
         with stdstreams(output, output):
             if album:
-                print(ou("%s:" % job_key[1]), end='')
+                print("%s:" % job_key[1], end='')
             do_gain(files, ref_level, force, dry_run, album, mp3_format)
             print("")
     except BaseException as exc:
@@ -257,15 +248,13 @@ def do_gain_all(music_dir, albums, single_tracks, files, ref_level=89,
             print("Unfortunately, there were some errors:")
             for key, output, exc in failed_jobs:
                 print(output.strip())
-                print(ou(exc), file=sys.stderr)
+                print(exc, file=sys.stderr)
                 print("")
         print("%s successful, %s failed." % (successful, len(failed_jobs)))
 
 
 def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
                       mp3_format=None, ignore_cache=False, jobs=0):
-    music_dir = un(music_dir, getfilesystemencoding())
-
     music_abspath = os.path.abspath(music_dir)
     musicpath_hash = md5(music_abspath.encode("utf-8")).hexdigest()
     cache_file = os.path.join(os.path.expanduser("~"), ".cache",
@@ -353,7 +342,7 @@ def collectiongain():
                           opts.mp3_format, opts.ignore_cache, opts.jobs)
     except Error as exc:
         print("")
-        print(ou(str(exc), file=sys.stderr))
+        print(str(exc), file=sys.stderr)
         sys.exit(1)
     except KeyboardInterrupt:
         print("Interrupted.")
