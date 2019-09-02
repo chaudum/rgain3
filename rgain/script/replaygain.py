@@ -22,14 +22,7 @@ import sys
 from gi.repository import GObject
 
 from rgain import rgcalc, rgio, util
-from rgain.script import (
-    Error,
-    common_options,
-    getfilesystemencoding,
-    init_gstreamer,
-    ou,
-    un,
-)
+from rgain.script import Error, common_options, init_gstreamer
 
 
 # calculate the gain for the given files
@@ -41,7 +34,7 @@ def calculate_gain(files, ref_level):
         loop.quit()
 
     def on_trk_started(evsrc, filename):
-        print(ou("  %s:" % filename.decode("utf-8")), end='', flush=True)
+        print("  %s:" % filename, end='', flush=True)
 
     def on_trk_finished(evsrc, filename, gaindata):
         if gaindata:
@@ -73,14 +66,12 @@ def calculate_gain(files, ref_level):
 def do_gain(files, ref_level=89, force=False, dry_run=False, album=True,  # noqa
             mp3_format=None):
 
-    files = [un(filename, getfilesystemencoding()) for filename in files]
-
     formats_map = rgio.BaseFormatsMap(mp3_format)
 
     newfiles = []
     for filename in files:
         if not formats_map.is_supported_format(os.path.splitext(filename)[1]):
-            print(ou("%s: not supported, ignoring it" % filename))
+            print("%s: not supported, ignoring it" % filename)
         else:
             newfiles.append(filename)
     files = newfiles
@@ -89,7 +80,7 @@ def do_gain(files, ref_level=89, force=False, dry_run=False, album=True,  # noqa
         print("Checking for Replay Gain information ...")
         newfiles = []
         for filename in files:
-            print(ou("  %s:" % filename), end='')
+            print("  %s:" % filename, end='')
             try:
                 trackdata, albumdata = formats_map.read_gain(filename)
             except Exception as exc:
@@ -134,7 +125,7 @@ def do_gain(files, ref_level=89, force=False, dry_run=False, album=True,  # noqa
     if not dry_run:
         print("Writing Replay Gain information to files ...")
         for filename, trackdata in tracks_data.items():
-            print(ou("  %s:" % filename), end='')
+            print("  %s:" % filename, end='')
             try:
                 formats_map.write_gain(filename, trackdata, albumdata)
             except Exception as exc:
@@ -150,8 +141,7 @@ def show_rgain_info(filenames, mp3_format=None):
     formats_map = rgio.BaseFormatsMap(mp3_format)
 
     for filename in filenames:
-        filename = un(filename, getfilesystemencoding())
-        print(ou(filename))
+        print(filename)
         try:
             trackdata, albumdata = formats_map.read_gain(filename)
         except Exception as exc:
@@ -222,8 +212,7 @@ def replaygain():
                     opts.mp3_format)
         except Error as exc:
             print("")
-            print(
-                ou(str(exc)), file=sys.stderr)
+            print(str(exc), file=sys.stderr)
             sys.exit(1)
         except KeyboardInterrupt:
             print("Interrupted.")

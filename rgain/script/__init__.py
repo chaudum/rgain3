@@ -25,55 +25,34 @@ from gi.repository import Gst  # noqa
 
 import rgain.rgio  # noqa
 from rgain import __version__  # noqa
-# we re-export this function for convenience and compatibility
-from rgain.util import getfilesystemencoding  # noqa
 
 gi.require_version("Gst", "1.0")
 
 
 __all__ = [
-    "getfilesystemencoding",
-    "ou",
-    "un",
     "Error",
     "init_gstreamer",
-    "common_options"]
-
-
-STDOUT_ENCODING = sys.stdout.encoding or getfilesystemencoding()
-
-
-def ou(arg):
-    # turn arg into a string suitable for console output
-    if isinstance(arg, str):
-        # we aggressively suggest that anything passed into this function should
-        # be a Unicode string by rejecting non-ASCII byte input.
-        return arg.decode("ascii").encode(STDOUT_ENCODING)
-    return arg.encode(STDOUT_ENCODING)
-
-
-def un(arg, encoding):
-    if isinstance(arg, str):
-        return arg.decode(encoding)
-    return arg
+    "common_options",
+]
 
 
 class Error(Exception):
     def __init__(self, message, exc_info=None):
-        Exception.__init__(self, message)
+        super().__init__(message)
         # as long as instances are only constructed in exception handlers, this
         # should get us what we want
         self.exc_info = exc_info if exc_info else sys.exc_info()
 
-    def __unicode__(self):
+    def __str__(self):
         if not self._output_full_exception():
-            return Exception.__unicode__(self)
+            return super().__str__()
         else:
-            return str("".join(traceback.format_exception(*self.exc_info)))
+            return "".join(traceback.format_exception(*self.exc_info))
 
     def _output_full_exception(self):
         return self.exc_info[0] not in [
-            IOError, rgain.rgio.AudioFormatError, rgain.GSTError]
+            IOError, rgain.rgio.AudioFormatError, rgain.GSTError,
+        ]
 
 
 def init_gstreamer():
