@@ -22,6 +22,7 @@ import warnings
 
 import mutagen
 from mutagen.easyid3 import EasyID3
+from mutagen.id3._util import ID3NoHeaderError
 
 from rgain import GainData
 
@@ -192,7 +193,12 @@ class MP3TagReaderWriter(SimpleTagReaderWriter):
         _ReplaygainEasyID3.RegisterTXXXKey("TXXX:%s" % key, key)
 
     def _get_tags_object(self, filename):
-        return self._ReplaygainEasyID3(filename)
+        try:
+            return self._ReplaygainEasyID3(filename)
+        except ID3NoHeaderError:
+            tags = self._ReplaygainEasyID3()
+            tags.filename = filename
+            return tags
 
 
 # ID3v2 support for TXXX:replaygain_* frames as specified in
