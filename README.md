@@ -16,13 +16,15 @@ different audio files. I won't lay it all out for you here, go read it yourself.
 - GStreamer -- http://gstreamer.org/
 - Cairo 2D -- https://www.cairographics.org/
 
-To install these dependencies on Debian or Ubuntu (12.10 or newer):
+To install these dependencies on Debian or Ubuntu (16.10 or newer):
 
  ```console
 $ apt install \
       gir1.2-gstreamer-1.0 \
       gstreamer1.0-plugins-base \
       gstreamer1.0-plugins-good \
+      gstreamer1.0-plugins-bad \
+      gstreamer1.0-plugins-ugly \
       libcairo2-dev \
       libgirepository1.0-dev \
       python3
