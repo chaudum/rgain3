@@ -21,12 +21,13 @@ import traceback
 from optparse import OptionParser
 
 import gi
-from gi.repository import Gst  # noqa
-
-import rgain.rgio  # noqa
-from rgain import __version__  # noqa
 
 gi.require_version("Gst", "1.0")
+
+from gi.repository import Gst  # noqa isort:skip
+
+import rgain.rgio  # noqa  isort:skip
+from rgain import __version__  # noqa isort:skip
 
 
 __all__ = [

@@ -19,11 +19,12 @@ documentation or use the ``calculate`` function.
 """
 
 import gi
-from gi.repository import GObject, Gst  # noqa
-
-from rgain import GainData, GainType, GSTError, util  # noqa
 
 gi.require_version('Gst', '1.0')
+
+from gi.repository import GObject, Gst  # noqa isort:skip
+
+from rgain import GainData, GainType, GSTError, util  # noqa isort:skip
 
 
 class MissingPluginsError(Exception):
