@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
 
+import io
 import os
 import sys
 import tempfile
 from datetime import date
 from distutils.command.build import build
+from typing import List
 
 from pkg_resources.extern.packaging.version import Version
 
 # a version must be PEP 440 compliant
 __version__ = Version("1.0.0")
+
+
+def requirements(filename: str) -> List[str]:
+    with io.open(filename, "r") as fp:
+        return [l.strip() for l in fp if l.strip()]
 
 
 try:
@@ -141,7 +148,10 @@ files.
 
     packages=["rgain3", "rgain3.script"],
     scripts=["scripts/replaygain", "scripts/collectiongain"],
-    install_requires=["pygobject", "mutagen"],
+    install_requires=requirements("requirements.txt"),
+    extras_require={
+        "test": requirements("test-requirements.txt"),
+    },
     python_requires=">=3.5",
 
     **manpages_args

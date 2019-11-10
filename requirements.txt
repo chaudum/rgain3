@@ -1,1 +1,2 @@
-mutagen
+PyGObject>=3.34.0
+mutagen>=1.43.0
