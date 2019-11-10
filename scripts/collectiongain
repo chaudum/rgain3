@@ -5,4 +5,3 @@ from rgain.script.collectiongain import collectiongain
 
 if __name__ == "__main__":
     collectiongain()
-

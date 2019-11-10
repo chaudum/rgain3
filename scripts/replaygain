@@ -5,4 +5,3 @@ from rgain.script.replaygain import replaygain
 
 if __name__ == "__main__":
     replaygain()
-
