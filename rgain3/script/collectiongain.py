@@ -26,9 +26,9 @@ from hashlib import md5
 
 import mutagen
 
-from rgain import albumid, rgio
-from rgain.script import Error, common_options, init_gstreamer
-from rgain.script.replaygain import do_gain
+from rgain3 import albumid, rgio
+from rgain3.script import Error, common_options, init_gstreamer
+from rgain3.script.replaygain import do_gain
 
 CURRENT_CACHE_VERSION = 1
 

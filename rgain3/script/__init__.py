@@ -26,8 +26,8 @@ gi.require_version("Gst", "1.0")
 
 from gi.repository import Gst  # noqa isort:skip
 
-import rgain.rgio  # noqa  isort:skip
-from rgain import __version__  # noqa isort:skip
+import rgain3.rgio  # noqa  isort:skip
+from rgain3 import __version__  # noqa isort:skip
 
 
 __all__ = [
@@ -52,7 +52,7 @@ class Error(Exception):
 
     def _output_full_exception(self):
         return self.exc_info[0] not in [
-            IOError, rgain.rgio.AudioFormatError, rgain.GSTError,
+            IOError, rgain3.rgio.AudioFormatError, rgain3.GSTError,
         ]
 
 
@@ -93,7 +93,7 @@ def common_options():
                     "generally not necessary to mess with this setting. Check "
                     "the README or man page for more information.",
                     dest="mp3_format", action="store", type="choice",
-                    choices=rgain.rgio.BaseFormatsMap.MP3_DISPLAY_FORMATS)
+                    choices=rgain3.rgio.BaseFormatsMap.MP3_DISPLAY_FORMATS)
     # This option only exists to show up in the help output; if it's actually
     # specified, GStreamer should eat it.
     opts.add_option("--help-gst", help="Show GStreamer options.",
