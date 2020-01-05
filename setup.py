@@ -1,6 +1,4 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -11,7 +9,7 @@ from distutils.command.build import build
 from pkg_resources.extern.packaging.version import Version
 
 # a version must be PEP 440 compliant
-__version__ = Version("1.3.4")
+__version__ = Version("1.0.0")
 
 
 try:
@@ -107,15 +105,17 @@ except ImportError:
     manpages_args = {}
 
 setup(
-    name="rgain",
+    name="rgain3",
     version=str(__version__),
     description="Multi-format Replay Gain utilities",
     author="Felix Krull",
     author_email="f_krull@gmx.de",
-    url="http://bitbucket.org/fk/rgain",
+    maintainer="Christian Haudum",
+    maintainer_email="christian@christianhaudum.at",
+    url="https://github.com/chaudum/rgain",
     license="GNU General Public License (v2 or later)",
     classifiers=[
-        "Development Status :: 7 - Inactive",
+        "Development Status :: 4 - Beta",
         "Environment :: Console",
         "Intended Audience :: End Users/Desktop",
         "Intended Audience :: Developers",
@@ -137,13 +137,9 @@ to its like-named cousins, most prominently ``vorbisgain`` and ``mp3gain`` --
 only that itworks for all those supported formats alike. ``collectiongain``
 on the other hand is a kind of fire-and-forget tool for big amounts of music
 files.
-
-NOTE: rgain is currently not being developed; for more information or if you'd
-like to help remedying this situation, see:
-https://bitbucket.org/fk/rgain/issues/26/wanted-new-maintainer
 """,
 
-    packages=["rgain", "rgain.script"],
+    packages=["rgain3", "rgain3.script"],
     scripts=["scripts/replaygain", "scripts/collectiongain"],
     install_requires=["pygobject", "mutagen"],
     python_requires=">=3.5",

@@ -1,7 +1,7 @@
-**This repository is a fork of Felix Krull's rgain repository on Bitbucket
+**This repository is a fork of Felix Krull's `rgain` repository on Bitbucket
 which aims to port the codebase to a modern Python 3 version.**
 
-# rgain -- ReplayGain tools and Python library
+# rgain3 -- ReplayGain tools and Python library
 
 This Python package provides modules to read, write and calculate Replay Gain
 as well as 2 scripts that utilize these modules to do Replay Gain.
@@ -9,11 +9,6 @@ as well as 2 scripts that utilize these modules to do Replay Gain.
 [Replay Gain][1] is a proposed standard (and has been for some time -- but it's
 widely accepted) that's designed to solve the problem of varying volumes between
 different audio files. I won't lay it all out for you here, go read it yourself.
-
-
-**NOTE:** rgain is currently not being developed; for more information or if you'd
-like to help remedying this situation, see:
-https://bitbucket.org/fk/rgain/issues/26/wanted-new-maintainer
 
 ## Requirements
 
@@ -26,9 +21,15 @@ https://bitbucket.org/fk/rgain/issues/26/wanted-new-maintainer
 To install these dependencies on Debian or Ubuntu (12.10 or newer):
 
  ```console
-$ apt-get install python3 python3-mutagen python3-docutils python3-gi \
-    gir1.2-gstreamer-1.0 libgstreamer1.0-0 gstreamer1.0-plugins-base \
-    gstreamer1.0-plugins-good
+$ apt-get install \
+      python3
+      python3-mutagen
+      python3-docutils
+      python3-gi \
+      gir1.2-gstreamer-1.0
+      libgstreamer1.0-0
+      gstreamer1.0-plugins-base \
+      gstreamer1.0-plugins-good
 ```
 
 You will also need GStreamer decoding plugins for any audio formats you want to
@@ -40,7 +41,7 @@ Just install it like any other Python package: unpack, then (as root/with
 **sudo**):
 
  ```console
-$ python setup.py install
+$ python3 setup.py install
  ```
 
 ## `replaygain`
@@ -182,4 +183,3 @@ The manpages were originally written for the Debian project and are::
 [3]: http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2
 [4]: http://foobar2000.org
 [5]: http://code.google.com/p/quodlibet
-

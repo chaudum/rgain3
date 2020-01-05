@@ -1,7 +1,6 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
-from rgain.script.collectiongain import collectiongain
+from rgain3.script.collectiongain import collectiongain
 
 if __name__ == "__main__":
     collectiongain()

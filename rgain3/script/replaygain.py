@@ -21,8 +21,8 @@ import sys
 
 from gi.repository import GObject
 
-from rgain import rgcalc, rgio, util
-from rgain.script import Error, common_options, init_gstreamer
+from rgain3 import rgcalc, rgio, util
+from rgain3.script import Error, common_options, init_gstreamer
 
 
 # calculate the gain for the given files

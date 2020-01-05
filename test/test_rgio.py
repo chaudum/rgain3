@@ -2,7 +2,7 @@ import os.path
 import unittest
 from pathlib import Path
 
-from rgain.rgio import MP3TagReaderWriter
+from rgain3.rgio import MP3TagReaderWriter
 
 DATA_PATH = Path(os.path.dirname(__file__)) / "data"
 

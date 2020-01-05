@@ -1,6 +1,6 @@
 import unittest
 
-from rgain import GainData, GainType
+from rgain3 import GainData, GainType
 
 
 class TestGainData(unittest.TestCase):

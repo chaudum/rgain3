@@ -16,7 +16,7 @@ code: &code
     - pip install -e .
     - pip install pytest-cov
   script:
-    - pytest --cov rgain -vvv
+    - pytest --cov rgain3 -vvv
   after_success:
     - coveralls
     - codecov

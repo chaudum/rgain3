@@ -24,7 +24,7 @@ import mutagen
 from mutagen.easyid3 import EasyID3
 from mutagen.id3._util import ID3NoHeaderError
 
-from rgain import GainData
+from rgain3 import GainData
 
 
 class AudioFormatError(Exception):
