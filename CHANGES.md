@@ -1,6 +1,13 @@
 Changes
 =======
 
+rgain3 1.0.0 (2020-01-06)
+-------------------------
+
+- Added support for Python 3.5, 3.6 and 3.7
+- Dropped support for Python 2.7
+- Fixed issue with MP3 files that did not contain ID3 headers
+
 rgain 1.3.4 (2016-05-06)
 ------------------------
 
