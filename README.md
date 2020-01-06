@@ -13,23 +13,19 @@ different audio files. I won't lay it all out for you here, go read it yourself.
 ## Requirements
 
 - Python 3.5, 3.6 or 3.7 -- http://python.org/
-- Mutagen -- http://code.google.com/p/mutagen/
-- GStreamer 1.0 -- http://gstreamer.org/
-- PyGObject -- https://live.gnome.org/PyGObject
-- python-docutils for the manpages -- http://docutils.sourceforge.net/
+- GStreamer -- http://gstreamer.org/
+- Cairo 2D -- https://www.cairographics.org/
 
 To install these dependencies on Debian or Ubuntu (12.10 or newer):
 
  ```console
-$ apt-get install \
-      python3
-      python3-mutagen
-      python3-docutils
-      python3-gi \
-      gir1.2-gstreamer-1.0
-      libgstreamer1.0-0
+$ apt install \
+      gir1.2-gstreamer-1.0 \
       gstreamer1.0-plugins-base \
-      gstreamer1.0-plugins-good
+      gstreamer1.0-plugins-good \
+      libcairo2-dev \
+      libgirepository1.0-dev \
+      python3
 ```
 
 You will also need GStreamer decoding plugins for any audio formats you want to
@@ -37,11 +33,10 @@ use.
 
 ## Installation
 
-Just install it like any other Python package: unpack, then (as root/with
-**sudo**):
+Just install it like any other Python package using `pip`:
 
  ```console
-$ python3 setup.py install
+$ python3 -m pip install --user rgain3
  ```
 
 ## `replaygain`
@@ -170,12 +165,13 @@ Copyright
 
 With the exception of the manpages, all files are::
 
- Copyright (c) 2009-2015 Felix Krull <f_krull@gmx.de>
+- Copyright (c) 2009-2015 Felix Krull <f_krull@gmx.de>
+- Copyright (c) 2019-2020 Christian Haudum <developer@christianhaudum.at>
 
 The manpages were originally written for the Debian project and are::
 
- Copyright (c) 2011 Simon Chopin <chopin.simon@gmail.com>
- Copyright (c) 2012-2015 Felix Krull <f_krull@gmx.de>
+- Copyright (c) 2011 Simon Chopin <chopin.simon@gmail.com>
+- Copyright (c) 2012-2015 Felix Krull <f_krull@gmx.de>
 
 
 [1]: http://replaygain.org
