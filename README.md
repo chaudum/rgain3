@@ -12,7 +12,7 @@ different audio files. I won't lay it all out for you here, go read it yourself.
 
 ## Requirements
 
-- Python 3.5, 3.6 or 3.7 -- http://python.org/
+- Python >= 3.5 -- http://python.org/
 - GStreamer -- http://gstreamer.org/
 - Cairo 2D -- https://www.cairographics.org/
 
@@ -162,8 +162,36 @@ behaviour. Possible choices with this switch are:
   However, if they don't match, no Replay Gain data is returned to signal that
   this file does not contain valid (read: consistent) Replay Gain information.
 
-Copyright
-=========
+# Development
+
+Fork and clone this repository. Inside the checkout create a `virtualenv` and install `rgain3` in develop mode:
+
+Note that developing from source requires the Python headers and therefore the
+`python3.x-dev` system package to be installed.
+
+```console
+$ python3 -m venv env
+$ source env/bin/activate
+(env) $ python -m pip install -Ue .
+```
+
+### Running Tests
+
+To run the tests with the Python version of your current virtualenv, simply
+invoke `pytest` installing `test` extras:
+
+```console
+(env) $ python -m pip install -Ue ".[test]"
+(env) $ pytest
+```
+
+You can run tests for all supported Python version using `tox` like so:
+
+```console
+(env) $ tox
+```
+
+# Copyright
 
 With the exception of the manpages, all files are::
 

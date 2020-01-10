@@ -28,3 +28,6 @@ matrix:
     - <<: *code
       name: "Python 3.7"
       python: 3.7
+    - <<: *code
+      name: "Python 3.8"
+      python: 3.8
