@@ -131,6 +131,7 @@ setup(
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Topic :: Multimedia :: Sound/Audio :: Analysis",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
@@ -150,7 +151,7 @@ files.
     scripts=["scripts/replaygain", "scripts/collectiongain"],
     install_requires=requirements("requirements.txt"),
     extras_require={
-        "test": requirements("test-requirements.txt"),
+        "test": ["tox>=3.14,<4.0"] + requirements("test-requirements.txt")
     },
     python_requires=">=3.5",
 

@@ -1,6 +1,8 @@
 Changes
 =======
 
+- Added support for Python 3.8
+
 rgain3 1.0.0 (2020-01-06)
 -------------------------
 
