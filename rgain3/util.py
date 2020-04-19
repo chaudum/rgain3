@@ -15,7 +15,40 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import contextlib
+import logging
 import sys
+from typing import Optional
+
+logger = logging.getLogger(__name__)
+
+
+def _str_to_float(value: str) -> Optional[float]:
+    try:
+        return float(value.strip())
+    except ValueError:
+        logger.info("Could not convert '%s' to float", value)
+    return None
+
+
+def parse_db(value: str) -> Optional[float]:
+    value = value.strip()
+    if value.lower().endswith("db"):
+        value = value[:-2].strip()
+    return _str_to_float(value)
+
+
+def parse_peak(value: str) -> Optional[float]:
+    return _str_to_float(value)
+
+
+def almost_equal(
+    a: Optional[float], b: Optional[float], epsilon: float
+) -> bool:
+    if a is None and b is None:
+        return True
+    elif a is None or b is None:
+        return False
+    return abs(a - b) <= epsilon
 
 
 def getfilesystemencoding():
