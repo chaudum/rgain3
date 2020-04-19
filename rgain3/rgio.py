@@ -25,39 +25,12 @@ from mutagen.easyid3 import EasyID3
 from mutagen.id3._util import ID3NoHeaderError
 
 from rgain3 import GainData
+from rgain3.util import almost_equal, parse_db, parse_peak
 
 
 class AudioFormatError(Exception):
     def __init__(self, filename):
         super().__init__("Did not understand file: {}".format(filename))
-
-
-# some generic helper functions
-def parse_db(string):
-    string = string.strip()
-    if string.lower().endswith("db"):
-        string = string[:-2].strip()
-    try:
-        db = float(string)
-    except ValueError:
-        db = None
-    return db
-
-
-def parse_peak(string):
-    try:
-        peak = float(string.strip())
-    except ValueError:
-        peak = None
-    return peak
-
-
-def almost_equal(a, b, epsilon):
-    if a is None and b is None:
-        return True
-    elif a is None or b is None:
-        return False
-    return abs(a - b) <= epsilon
 
 
 # interface for ReplayGain reading/writing class
