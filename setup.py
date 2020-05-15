@@ -16,7 +16,7 @@ __version__ = Version("1.0.0")
 
 def requirements(filename: str) -> List[str]:
     with io.open(filename, "r") as fp:
-        return [l.strip() for l in fp if l.strip()]
+        return [line.strip() for line in fp if line.strip()]
 
 
 try:
