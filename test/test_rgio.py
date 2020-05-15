@@ -15,19 +15,19 @@ class TestGetTagsObject(unittest.TestCase):
         tags = self.reader_writer._get_tags_object(
             str(DATA_PATH / "missing-headers.mp3")
         )
-        self.assertEquals(tags.keys(), [])
+        self.assertEqual(tags.keys(), [])
         self.assertTrue(tags.filename.endswith("missing-headers.mp3"))
 
     def test_no_tags_mp3(self):
         tags = self.reader_writer._get_tags_object(
             str(DATA_PATH / "no-tags.mp3")
         )
-        self.assertEquals(tags.keys(), [])
+        self.assertEqual(tags.keys(), [])
         self.assertTrue(tags.filename.endswith("no-tags.mp3"))
 
     def test_album_mp3(self):
         tags = self.reader_writer._get_tags_object(
             str(DATA_PATH / "album-tag.mp3")
         )
-        self.assertEquals(tags.keys(), ["album"])
+        self.assertEqual(tags.keys(), ["album"])
         self.assertTrue(tags.filename.endswith("album-tag.mp3"))
