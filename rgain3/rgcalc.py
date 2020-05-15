@@ -22,7 +22,7 @@ import gi
 
 gi.require_version('Gst', '1.0')
 
-from gi.repository import GObject, Gst  # noqa isort:skip
+from gi.repository import GLib, GObject, Gst  # noqa isort:skip
 
 from rgain3 import GainData, GainType, GSTError, util  # noqa isort:skip
 
@@ -43,7 +43,7 @@ class ReplayGain(GObject.GObject):
      - instantiate the class, passing it a list of file names and optionally the
        reference loudness level to use (defaults to 89 dB),
      - connect to the signals the class provides,
-     - get yourself a glib main loop (e.g. ``GObject.MainLoop`` or the one from
+     - get yourself a glib main loop (e.g. ``GLib.MainLoop`` or the one from
        GTK),
      - call ``replaygain_instance.start()`` to start processing,
      - start your main loop to dispatch events and
@@ -265,7 +265,7 @@ def calculate(*args, **kwargs):
             rg,
             ("all-finished", on_finished),
             ("error", on_error),):
-        loop = GObject.MainLoop()
+        loop = GLib.MainLoop()
         rg.start()
         loop.run()
     if exc_slot[0] is not None:
