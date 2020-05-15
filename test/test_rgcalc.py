@@ -5,7 +5,7 @@ import gi
 
 gi.require_version("Gst", "1.0")
 
-from gi.repository import GObject, Gst  # noqa isort:skip
+from gi.repository import GLib, GObject, Gst  # noqa isort:skip
 
 from rgain3 import GainType, rgcalc, util  # noqa isort:skip
 
@@ -63,7 +63,7 @@ class TestReplayGain(unittest.TestCase):
         rg = rgcalc.ReplayGain(tracks)
 
         events = []
-        loop = GObject.MainLoop()
+        loop = GLib.MainLoop()
 
         def event(*args):
             """
