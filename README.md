@@ -14,7 +14,7 @@ different audio files. I won't lay it all out for you here, go read it yourself.
 
 - Python >= 3.6 -- http://python.org/
 - GStreamer -- http://gstreamer.org/
-- Cairo 2D -- https://www.cairographics.org/
+- PyGObject -- https://pygobject.readthedocs.io/en/latest/
 
 To install these dependencies on Debian or Ubuntu (16.10 or newer):
 
@@ -25,10 +25,12 @@ $ apt install \
       gstreamer1.0-plugins-good \
       gstreamer1.0-plugins-bad \
       gstreamer1.0-plugins-ugly \
-      libcairo2-dev \
-      libgirepository1.0-dev \
-      python3
+      python3 \
+      python3-gi
 ```
+
+(Or if you prefer to install the latest PyGObject from source code,
+replace `python3-gi` with `libcairo2-dev libgirepository1.0-dev`.)
 
 You will also need GStreamer decoding plugins for any audio formats you want to
 use.
