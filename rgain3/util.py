@@ -16,8 +16,11 @@
 
 import contextlib
 import logging
+import os
 import sys
 from typing import Optional
+
+import filetype
 
 logger = logging.getLogger(__name__)
 
@@ -69,3 +72,20 @@ def gobject_signals(obj, *signals):
     finally:
         for signal_id in signal_ids:
             obj.disconnect(signal_id)
+
+
+def extension_for_file(filepath: str) -> str:
+    """
+    Guess the file type of a given file based on magic numbers signature.
+    Supported types are: https://github.com/h2non/filetype.py#audio
+
+    In case the type could not be guessed, fall back to file path extension.
+
+    This method raises a FileNotFoundError in case the file at the given path
+    does not exist.
+    """
+    # raise FileNotFoundError if file does not exist
+    os.stat(filepath)
+
+    kind = filetype.guess(filepath)
+    return kind.extension if kind else os.path.splitext(filepath)[1].lower()[1:]

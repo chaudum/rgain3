@@ -17,7 +17,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import abc
-import os
 import warnings
 
 import mutagen
@@ -25,7 +24,7 @@ from mutagen.easyid3 import EasyID3
 from mutagen.id3._util import ID3NoHeaderError
 
 from rgain3 import GainData
-from rgain3.util import almost_equal, parse_db, parse_peak
+from rgain3.util import almost_equal, extension_for_file, parse_db, parse_peak
 
 
 class AudioFormatError(Exception):
@@ -321,7 +320,7 @@ class UnknownFiletype(Exception):
     pass
 
 
-class BaseFormatsMap(object):
+class BaseFormatsMap:
     _simplereaderwriter = SimpleTagReaderWriter()
     _mp4readerwriter = MP4TagReaderWriter()
     _mp3_rgorg_readerwriter = MP3rgorgTagReaderWriter()
@@ -331,12 +330,12 @@ class BaseFormatsMap(object):
         _mp3_rva2_readerwriter)
 
     BASE_MAP = {
-        ".ogg": _simplereaderwriter,
-        ".oga": _simplereaderwriter,
-        ".flac": _simplereaderwriter,
-        ".wv": _simplereaderwriter,
-        ".m4a": _mp4readerwriter,
-        ".mp4": _mp4readerwriter,
+        "ogg": _simplereaderwriter,
+        "oga": _simplereaderwriter,
+        "flac": _simplereaderwriter,
+        "wv": _simplereaderwriter,
+        "m4a": _mp4readerwriter,
+        "mp4": _mp4readerwriter,
     }
 
     MP3_FORMATS = {
@@ -355,32 +354,24 @@ class BaseFormatsMap(object):
         # yeah, you need to choose
         self.more_mappings = more_mappings if more_mappings else {}
         if mp3_format in self.MP3_FORMATS:
-            self.more_mappings[".mp3"] = self.MP3_FORMATS[mp3_format]
+            self.more_mappings["mp3"] = self.MP3_FORMATS[mp3_format]
         else:
             raise ValueError("invalid MP3 format %r" % mp3_format)
 
-    def is_supported_format(self, ext):
-        ext_lower = ext.lower()
-        return ext_lower in self.BASE_MAP or ext_lower in self.more_mappings
+    def is_supported(self, filename) -> bool:
+        ext = extension_for_file(filename)
+        return ext in self.BASE_MAP or ext in self.more_mappings
+
+    def accessor(self, filename) -> BaseTagReaderWriter:
+        ext = extension_for_file(filename)
+        if ext in self.more_mappings:
+            return self.more_mappings[ext]
+        elif ext in self.BASE_MAP:
+            return self.BASE_MAP[ext]
+        raise UnknownFiletype(ext)
 
     def read_gain(self, filename):
-        ext = os.path.splitext(filename)[1].lower()
-        if ext in self.more_mappings:
-            accessor = self.more_mappings[ext]
-        elif ext in self.BASE_MAP:
-            accessor = self.BASE_MAP[ext]
-        else:
-            raise UnknownFiletype(ext)
-
-        return accessor.read_gain(filename)
+        return self.accessor(filename).read_gain(filename)
 
     def write_gain(self, filename, trackgain, albumgain):
-        ext = os.path.splitext(filename)[1].lower()
-        if ext in self.more_mappings:
-            accessor = self.more_mappings[ext]
-        elif ext in self.BASE_MAP:
-            accessor = self.BASE_MAP[ext]
-        else:
-            raise UnknownFiletype(ext)
-
-        accessor.write_gain(filename, trackgain, albumgain)
+        self.accessor(filename).write_gain(filename, trackgain, albumgain)
