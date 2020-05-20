@@ -1,6 +1,8 @@
 Changes
 =======
 
+- Added file type guessing based on magic numbers signature
+
 - Added support for Python 3.8
 - Added this file to the source distribution
 - Added files necessary for the tests to the source distribution

@@ -16,7 +16,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import os.path
 import sys
 
 from gi.repository import GLib
@@ -70,7 +69,7 @@ def do_gain(files, ref_level=89, force=False, dry_run=False, album=True,  # noqa
 
     newfiles = []
     for filename in files:
-        if not formats_map.is_supported_format(os.path.splitext(filename)[1]):
+        if not formats_map.is_supported(filename):
             print("%s: not supported, ignoring it" % filename)
         else:
             newfiles.append(filename)

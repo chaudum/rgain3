@@ -95,7 +95,7 @@ def write_cache(cache_file, files):
         print("Error while writing the cache - %s" % exc)
 
 
-def collect_files(music_dir, files, visited_cache, is_supported_format):
+def collect_files(music_dir, files, visited_cache, is_supported):
     i = 0
     for dirpath, dirnames, filenames in os.walk(music_dir):
         for filename in filenames:
@@ -111,8 +111,7 @@ def collect_files(music_dir, files, visited_cache, is_supported_format):
                     # the file's still ok
                     continue
 
-            ext = os.path.splitext(filename)[1]
-            if is_supported_format(ext):
+            if is_supported(properpath):
                 i += 1
                 print("  [%i] %s |" % (i, filepath), end='')
                 try:
@@ -271,8 +270,12 @@ def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
     # cache is written to disk so all progress persists
     try:
         visited_cache = dict.fromkeys(iter(files.keys()), False)
-        collect_files(music_dir, files, visited_cache,
-                      rgio.BaseFormatsMap(mp3_format).is_supported_format)
+        collect_files(
+            music_dir,
+            files,
+            visited_cache,
+            rgio.BaseFormatsMap(mp3_format).is_supported
+        )
         # clean cache
         for filepath, visited in list(visited_cache.items()):
             if not visited:
