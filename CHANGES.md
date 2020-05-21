@@ -2,6 +2,9 @@ Changes
 =======
 
 - Added support for Python 3.8
+- Added this file to the source distribution
+- Added files necessary for the tests to the source distribution
+- Fixed some deprecation warnings
 
 rgain3 1.0.0 (2020-01-06)
 -------------------------
