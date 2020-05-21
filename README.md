@@ -204,7 +204,7 @@ The manpages were originally written for the Debian project and are::
 - Copyright (c) 2012-2015 Felix Krull <f_krull@gmx.de>
 
 
-[1]: http://replaygain.org
+[1]: https://wiki.hydrogenaud.io/index.php?title=ReplayGain
 [2]: http://mp3gain.sourceforce.net
 [3]: http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2
 [4]: http://foobar2000.org
