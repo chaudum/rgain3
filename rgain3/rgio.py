@@ -22,6 +22,7 @@ import warnings
 
 import mutagen
 from mutagen.easyid3 import EasyID3
+from mutagen.easymp4 import EasyMP4, EasyMP4Tags
 from mutagen.id3._util import ID3NoHeaderError
 
 from rgain3 import GainData
@@ -127,25 +128,25 @@ class SimpleTagReaderWriter(BaseTagReaderWriter):
 
 # MP4 support
 class MP4TagReaderWriter(SimpleTagReaderWriter):
-    FORMAT = "----:com.apple.iTunes:replaygain_%s_%s"
-    TRACK_GAIN_TAG = FORMAT % ("track", "gain")
-    TRACK_PEAK_TAG = FORMAT % ("track", "peak")
-    ALBUM_GAIN_TAG = FORMAT % ("album", "gain")
-    ALBUM_PEAK_TAG = FORMAT % ("album", "peak")
-    REF_LOUDNESS_TAGS = []
+    class _ReplaygainEasyMP4(EasyMP4):
+        _FREEFORM_TAGS = [
+            "replaygain_track_gain",
+            "replaygain_track_peak",
+            "replaygain_album_gain",
+            "replaygain_album_peak",
+            "replaygain_reference_loudness",
+        ]
 
-    # Mutagen 1.22 has a bug (?) such that MP4 values cannot be unicode objects
-    # so we encode everything to ASCII here
-    # https://code.google.com/p/mutagen/issues/detail?id=164
-    def _dump_gain(self, gain):
-        return SimpleTagReaderWriter._dump_gain(self, gain).encode("ascii")
+        class _ReplaygainEasyMP4Tags(EasyMP4Tags):
+            pass
 
-    def _dump_peak(self, peak):
-        return SimpleTagReaderWriter._dump_peak(self, peak).encode("ascii")
+        for key in _FREEFORM_TAGS:
+            _ReplaygainEasyMP4Tags.RegisterFreeformKey(key, key)
 
-    def _dump_ref_level(self, ref_level):
-        return SimpleTagReaderWriter._dump_ref_level(
-            self, ref_level).encode("ascii")
+        MP4Tags = _ReplaygainEasyMP4Tags
+
+    def _get_tags_object(self, filename):
+        return self._ReplaygainEasyMP4(filename)
 
 
 # MP3 support base class
