@@ -1,6 +1,7 @@
 Changes
 =======
 
+- Added support for MP4/iTunes album/artist tags
 - Updated the package structure so that the scripts are located in the `rgain`
   module. This means that they can now also be invoked using `python -m
   rgain3.replaygain` and `python -m rgain3.collectiongain`.
