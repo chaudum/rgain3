@@ -1,4 +1,14 @@
-#!/usr/bin/env python3
+"""
+A set of Python modules and utility programmes to deal with Replay Gain
+information -- calculate it (with GStreamer), read and write it (with Mutagen).
+It has support for Ogg Vorbis (or probably anything stored in an Ogg
+container), Flac, WavPack, MP4 (aka AAC) and MP3 (in different incarnations).
+There‘s also a command-line programme, ``replaygain``, that works very similar
+to its like-named cousins, most prominently ``vorbisgain`` and ``mp3gain`` --
+only that itworks for all those supported formats alike. ``collectiongain``
+on the other hand is a kind of fire-and-forget tool for big amounts of music
+files.
+"""
 
 import io
 import os
@@ -102,7 +112,7 @@ try:
             ("man/collectiongain.rst", "collectiongain.1"),
         ],
         "rst_manpages_update_info": True,
-        "rst_manpages_version": __version__,
+        "rst_manpages_version": str(__version__),
         "rst_manpages_date": date.today(),
         "cmdclass": {"build_manpages": build_manpages},
         "distclass": ManpagesDistribution,
@@ -135,20 +145,16 @@ setup(
         "Topic :: Multimedia :: Sound/Audio :: Analysis",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    long_description="""\
-A set of Python modules and utility programmes to deal with Replay Gain
-information -- calculate it (with GStreamer), read and write it (with Mutagen).
-It has support for Ogg Vorbis (or probably anything stored in an Ogg
-container), Flac, WavPack, MP4 (aka AAC) and MP3 (in different incarnations).
-There‘s also a command-line programme, ``replaygain``, that works very similar
-to its like-named cousins, most prominently ``vorbisgain`` and ``mp3gain`` --
-only that itworks for all those supported formats alike. ``collectiongain``
-on the other hand is a kind of fire-and-forget tool for big amounts of music
-files.
-""",
-
-    packages=["rgain3", "rgain3.script"],
-    scripts=["scripts/replaygain", "scripts/collectiongain"],
+    long_description=__doc__,
+    packages=["rgain3"],
+    console_entrypoints={
+    },
+    entry_points={
+        "console_scripts": [
+            "collectiongain = rgain3.collectiongain:main",
+            "replaygain = rgain3.replaygain:main",
+        ]
+    },
     install_requires=requirements("requirements.txt"),
     extras_require={
         "test": ["tox>=3.14,<4.0"] + requirements("test-requirements.txt")

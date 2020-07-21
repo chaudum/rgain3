@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-#
-# Copyright (c) 2009-2014 Felix Krull <f_krull@gmx.de>
+# Copyright (c) 2009-2015 Felix Krull <f_krull@gmx.de>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,8 +18,8 @@ import sys
 
 from gi.repository import GLib
 
-from rgain3 import rgcalc, rgio, util
-from rgain3.script import Error, common_options, init_gstreamer
+from rgain3 import Error, common_options, init_gstreamer
+from rgain3.lib import rgcalc, rgio, util
 
 
 # calculate the gain for the given files
@@ -196,7 +194,7 @@ def rgain_options():
     return opts
 
 
-def replaygain():
+def main():
     init_gstreamer()
     optparser = rgain_options()
     opts, args = optparser.parse_args()
@@ -218,4 +216,4 @@ def replaygain():
 
 
 if __name__ == "__main__":
-    replaygain()
+    main()

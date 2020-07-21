@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-#
-# Copyright (c) 2009-2014 Felix Krull <f_krull@gmx.de>
+# Copyright (c) 2009-2015 Felix Krull <f_krull@gmx.de>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,8 +21,13 @@ import mutagen
 from mutagen.easyid3 import EasyID3
 from mutagen.id3._util import ID3NoHeaderError
 
-from rgain3 import GainData
-from rgain3.util import almost_equal, extension_for_file, parse_db, parse_peak
+from rgain3.lib import GainData
+from rgain3.lib.util import (
+    almost_equal,
+    extension_for_file,
+    parse_db,
+    parse_peak,
+)
 
 
 class AudioFormatError(Exception):
