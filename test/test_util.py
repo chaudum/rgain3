@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from rgain3.util import extension_for_file, parse_db, parse_peak
+from rgain3.lib.util import extension_for_file, parse_db, parse_peak
 
 
 @pytest.mark.parametrize("in_value,expected", [

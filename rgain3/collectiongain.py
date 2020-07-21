@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-#
-# Copyright (c) 2009-2014 Felix Krull <f_krull@gmx.de>
+# Copyright (c) 2009-2015 Felix Krull <f_krull@gmx.de>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,9 +24,9 @@ from hashlib import md5
 
 import mutagen
 
-from rgain3 import albumid, rgio
-from rgain3.script import Error, common_options, init_gstreamer
-from rgain3.script.replaygain import do_gain
+from rgain3 import Error, common_options, init_gstreamer
+from rgain3.lib import albumid, rgio
+from rgain3.replaygain import do_gain
 
 CURRENT_CACHE_VERSION = 1
 
@@ -329,7 +327,7 @@ def collectiongain_options():
     return opts
 
 
-def collectiongain():
+def main():
     init_gstreamer()
     optparser = collectiongain_options()
     opts, args = optparser.parse_args()
@@ -352,4 +350,4 @@ def collectiongain():
 
 
 if __name__ == "__main__":
-    collectiongain()
+    main()

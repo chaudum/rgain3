@@ -14,67 +14,90 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import enum
+import sys
+import traceback
+from optparse import OptionParser
 
-from .version import __version__
+import gi
 
-__all__ = ["__version__", "GainData"]
+gi.require_version("Gst", "1.0")
+
+from gi.repository import Gst  # noqa isort:skip
+
+from rgain3.lib import GSTError, __version__  # noqa isort:skip
+from rgain3.lib.rgio import AudioFormatError, BaseFormatsMap # noqa isort:skip
 
 
-class GainType(enum.Enum):
-    TP_UNDEFINED = "TP_UNDEFINED"
-    TP_TRACK = "TP_TRACK"
-    TP_ALBUM = "TP_ALBUM"
+__all__ = [
+    "Error",
+    "init_gstreamer",
+    "common_options",
+]
 
 
-class GainData:
-
-    """A class that contains Replay Gain data.
-
-    Arguments for ``__init__`` are also instance variables. These are:
-     - ``gain``: the gain (in dB, relative to ``ref_level``)
-     - ``peak``: the peak
-     - ``ref_level``: the used reference level (in dB)
-    """
-
-    def __init__(self,
-                 gain,
-                 peak=1.0,
-                 ref_level=89,
-                 gain_type=GainType.TP_UNDEFINED):
-        self.gain = gain
-        self.peak = peak
-        self.ref_level = ref_level
-        self.gain_type = gain_type
+class Error(Exception):
+    def __init__(self, message, exc_info=None):
+        super().__init__(message)
+        # as long as instances are only constructed in exception handlers, this
+        # should get us what we want
+        self.exc_info = exc_info if exc_info else sys.exc_info()
 
     def __str__(self):
-        return "gain={.2f} dB; peak={.8f}; reference-level={} dB".format(
-            self.gain, self.peak, self.ref_level
-        )
+        if not self._output_full_exception():
+            return super().__str__()
+        else:
+            return "".join(traceback.format_exception(*self.exc_info))
 
-    def __repr__(self):
-        return "{}({}, {}, {}, {})".format(
-            self.__class__.__name__,
-            self.gain, self.peak, self.ref_level, self.gain_type
-        )
-
-    def __eq__(self, other):
-        return isinstance(other, GainData) and (
-            self.gain == other.gain and
-            self.peak == other.peak and
-            self.ref_level == other.ref_level and
-            self.gain_type == other.gain_type)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    def _output_full_exception(self):
+        return self.exc_info[0] not in [
+            IOError, AudioFormatError, GSTError,
+        ]
 
 
-class GSTError(Exception):
-    def __init__(self, gerror, debug):
-        self.domain = gerror.domain
-        self.code = gerror.code
-        self.message = gerror.message
-        self.debug = debug
+def init_gstreamer():
+    """Properly initialise GStreamer for the command-line interfaces.
 
-    def __str__(self):
-        return "GST error: {} ({})".format(self.message, self.debug)
+    Specifically, GStreamer options are parsed and processed by GStreamer, but
+    it is also kept from taking over the main help output (by pretending -h
+    or --help wasn't passed, if necessary). --help-gst should be documented in
+    the main help output as a switch to display GStreamer options."""
+    # Strip any --help options from the command line.
+    stripped_options = []
+    for opt in ["-h", "--help"]:
+        if opt in sys.argv:
+            sys.argv.remove(opt)
+            stripped_options.append(opt)
+    # Then, pass any remaining options to GStreamer.
+    sys.argv = Gst.init(sys.argv)
+    # Finally, restore any help options so optparse can eat them.
+    for opt in stripped_options:
+        sys.argv.append(opt)
+
+
+def common_options():
+    opts = OptionParser(version="%%prog %s" % __version__)
+
+    opts.add_option("-f", "--force", help="Recalculate Replay Gain even if the "
+                    "file already contains gain information.", dest="force",
+                    action="store_true")
+    opts.add_option("-d", "--dry-run", help="Don't actually modify any files.",
+                    dest="dry_run", action="store_true")
+    opts.add_option("-r", "--reference-loudness", help="Set the reference "
+                    "loudness to REF dB (default: %default dB)", metavar="REF",
+                    dest="ref_level", action="store", type="int")
+    opts.add_option("--mp3-format", help="Choose the Replay Gain data format "
+                    "for MP3 files. The default setting should be compatible "
+                    "with most decent software music players, so it is "
+                    "generally not necessary to mess with this setting. Check "
+                    "the README or man page for more information.",
+                    dest="mp3_format", action="store", type="choice",
+                    choices=BaseFormatsMap.MP3_DISPLAY_FORMATS)
+    # This option only exists to show up in the help output; if it's actually
+    # specified, GStreamer should eat it.
+    opts.add_option("--help-gst", help="Show GStreamer options.",
+                    dest="help_gst", action="store_true")
+
+    opts.set_defaults(
+        force=False, dry_run=False, ref_level=89, mp3_format="default")
+
+    return opts

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from rgain3.rgio import (
+from rgain3.lib.rgio import (
     BaseFormatsMap,
     BaseTagReaderWriter,
     MP3DefaultTagReaderWriter,

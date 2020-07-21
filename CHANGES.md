@@ -1,8 +1,10 @@
 Changes
 =======
 
+- Updated the package structure so that the scripts are located in the `rgain`
+  module. This means that they can now also be invoked using `python -m
+  rgain3.replaygain` and `python -m rgain3.collectiongain`.
 - Added file type guessing based on magic numbers signature
-
 - Added support for Python 3.8
 - Added this file to the source distribution
 - Added files necessary for the tests to the source distribution

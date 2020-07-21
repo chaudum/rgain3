@@ -24,7 +24,7 @@ gi.require_version('Gst', '1.0')
 
 from gi.repository import GLib, GObject, Gst  # noqa isort:skip
 
-from rgain3 import GainData, GainType, GSTError, util  # noqa isort:skip
+from rgain3.lib import GainData, GainType, GSTError, util  # noqa isort:skip
 
 
 class MissingPluginsError(Exception):
