@@ -1,7 +1,7 @@
 Changes
 =======
 
-- Added support for Python 3.8
+- Added support for Python 3.8 and 3.9
 - Added this file to the source distribution
 - Added files necessary for the tests to the source distribution
 - Fixed some deprecation warnings
