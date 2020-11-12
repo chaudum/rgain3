@@ -1,4 +1,4 @@
-ARG PY=3.5
+ARG PY=3.6
 ARG BASE="python:${PY}-slim"
 
 FROM $BASE

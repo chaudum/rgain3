@@ -1,6 +1,7 @@
 Changes
 =======
 
+- Dropped support for Python 3.5 which reached end-of-life
 - Added support for MP4/iTunes album/artist tags
 - Updated the package structure so that the scripts are located in the `rgain`
   module. This means that they can now also be invoked using `python -m
