@@ -12,7 +12,7 @@ different audio files. I won't lay it all out for you here, go read it yourself.
 
 ## Requirements
 
-- Python >= 3.5 -- http://python.org/
+- Python >= 3.6 -- http://python.org/
 - GStreamer -- http://gstreamer.org/
 - Cairo 2D -- https://www.cairographics.org/
 
