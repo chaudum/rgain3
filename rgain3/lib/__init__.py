@@ -15,6 +15,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import enum
+from dataclasses import dataclass
 
 from .version import __version__
 
@@ -27,8 +28,8 @@ class GainType(enum.Enum):
     TP_ALBUM = "TP_ALBUM"
 
 
+@dataclass
 class GainData:
-
     """A class that contains Replay Gain data.
 
     Arguments for ``__init__`` are also instance variables. These are:
@@ -37,36 +38,10 @@ class GainData:
      - ``ref_level``: the used reference level (in dB)
     """
 
-    def __init__(self,
-                 gain,
-                 peak=1.0,
-                 ref_level=89,
-                 gain_type=GainType.TP_UNDEFINED):
-        self.gain = gain
-        self.peak = peak
-        self.ref_level = ref_level
-        self.gain_type = gain_type
-
-    def __str__(self):
-        return "gain={.2f} dB; peak={.8f}; reference-level={} dB".format(
-            self.gain, self.peak, self.ref_level
-        )
-
-    def __repr__(self):
-        return "{}({}, {}, {}, {})".format(
-            self.__class__.__name__,
-            self.gain, self.peak, self.ref_level, self.gain_type
-        )
-
-    def __eq__(self, other):
-        return isinstance(other, GainData) and (
-            self.gain == other.gain and
-            self.peak == other.peak and
-            self.ref_level == other.ref_level and
-            self.gain_type == other.gain_type)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    gain: float
+    peak: float = 1.0
+    ref_level: int = 89
+    gain_type: GainType = GainType.TP_UNDEFINED
 
 
 class GSTError(Exception):
