@@ -28,7 +28,6 @@ class GainType(enum.Enum):
 
 
 class GainData:
-
     """A class that contains Replay Gain data.
 
     Arguments for ``__init__`` are also instance variables. These are:
@@ -48,7 +47,7 @@ class GainData:
         self.gain_type = gain_type
 
     def __str__(self):
-        return "gain={.2f} dB; peak={.8f}; reference-level={} dB".format(
+        return "gain={:.2f} dB; peak={:.8f}; reference-level={} dB".format(
             self.gain, self.peak, self.ref_level
         )
 

@@ -1,6 +1,8 @@
 Changes
 =======
 
+- Fixed string format syntax error in ``__str__`` method of the ``GainData``
+  class which could be thrown in case ``rgain3`` was used as a library.
 - Dropped support for Python 3.5 which reached end-of-life
 - Added support for MP4/iTunes album/artist tags
 - Updated the package structure so that the scripts are located in the `rgain`
