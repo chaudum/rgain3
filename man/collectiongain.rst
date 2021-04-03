@@ -83,11 +83,11 @@ behaviour. Possible choices with this switch are:
 
  - *legacy* (alias: *ql*)
    Replay Gain information is stored in ID3v2.4 RVA2 frames. This format is
-   described as "legacy" by replaygain.org; however, it might still be the primary
-   format for some music players. It should be noted that this format does not 
-   support volume adjustments of more than 64 dB: if the calculated gain value is 
-   smaller than -64 dB or greater than or equal to +64 dB, it is clamped to these 
-   limit values.
+   described as "legacy" by replaygain.org; however, it might still be the
+   primary format for some music players. It should be noted that this format
+   does not support volume adjustments of more than 64 dB: if the calculated
+   gain value is smaller than -64 dB or greater than or equal to +64 dB, it is
+   clamped to these limit values.
 
  - *default*
    This is the default implementation used by both **replaygain** and
