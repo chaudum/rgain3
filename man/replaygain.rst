@@ -77,7 +77,7 @@ behaviour. Possible choices with this switch are:
    Replay Gain information is stored in ID3v2 TXXX frames. This format is
    specified on the replaygain.org website as the recommended format for MP3
    files. Notably, this format is used by music players like foobar2000 [3] 
-   and Quod Libet [4], which can also fall back on the legacy format).
+   and Quod Libet [4]. The latter can also fall back on the legacy format.
 
  - *legacy* (alias: *ql*)
    Replay Gain information is stored in ID3v2.4 RVA2 frames. This format is
