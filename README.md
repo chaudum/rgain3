@@ -208,4 +208,4 @@ The manpages were originally written for the Debian project and are::
 [2]: http://mp3gain.sourceforce.net
 [3]: http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2
 [4]: http://foobar2000.org
-[5]: http://code.google.com/p/quodlibet
+[5]: https://github.com/quodlibet/quodlibet/
