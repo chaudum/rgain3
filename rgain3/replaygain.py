@@ -18,7 +18,7 @@ import sys
 
 from gi.repository import GLib
 
-from rgain3 import Error, common_options, init_gstreamer
+from rgain3 import Error, common_parser, init_gstreamer
 from rgain3.lib import rgcalc, rgio, util
 
 
@@ -166,47 +166,54 @@ def show_rgain_info(filenames, mp3_format=None):
             print("  Album peak %.8f" % albumdata.peak)
 
 
-def rgain_options():
-    opts = common_options()
-
-    opts.add_option("--no-album", help="Don't write any album gain "
-                    "information.", dest="album", action="store_false")
-    opts.add_option("--show", help="Don't calculate anything, simply show "
-                    "Replay Gain information for the specified files. In this "
-                    "mode, all other options save for '--mp3-format' are "
-                    "ignored, for they would make no sense.", dest="show",
-                    action="store_true")
-
-    opts.set_defaults(album=True, show=False)
-
-    opts.set_usage("%prog [options] AUDIO_FILE [AUDIO_FILE ...]")
-    opts.set_description("Apply or display Replay Gain information for audio "
-                         "files. This program is similar to the likes of "
-                         "'vorbisgain' or 'mp3gain': You pass in some files, "
-                         "they are analyzed and receive their share of Replay "
-                         "Gain. The difference is that '%prog' supports "
-                         "several file formats, namely Ogg Vorbis (anything "
-                         "you'd put into an Ogg container, actually), Flac, "
-                         "WavPack and MP3. Also, it allows you to view "
-                         "existing Replay Gain information in any of those "
-                         "file types.")
-
-    return opts
+def rgain_parser():
+    parser = common_parser(
+        description="Apply or display Replay Gain information for audio files. "
+        "This program is similar to the likes of 'vorbisgain' or 'mp3gain': "
+        "You pass in some files, they are analyzed and receive their share of "
+        "Replay Gain. The difference is that %(prog)s supports several file "
+        "formats, namely Ogg Vorbis (anything you'd put into an Ogg container, "
+        "actually), Flac, WavPack and MP3. Also, it allows you to view "
+        "existing Replay Gain information in any of those file types."
+    )
+    parser.add_argument(
+        "--no-album",
+        action="store_false",
+        dest="album",
+        help="Don't write any album gain information.",
+    )
+    parser.add_argument(
+        "--show",
+        action="store_true",
+        help="Don't calculate anything, simply show Replay Gain information "
+        "for the specified files. In this mode, all other options save for "
+        "'--mp3-format' are ignored, for they would make no sense.",
+    )
+    parser.add_argument(
+        "audio_file",
+        nargs="+",
+        metavar="AUDIO_FILE",
+    )
+    return parser
 
 
 def main():
     init_gstreamer()
-    optparser = rgain_options()
-    opts, args = optparser.parse_args()
-    if not args:
-        optparser.error("pass one or several audio file names")
+    parser = rgain_parser()
+    opts = parser.parse_args()
 
     if opts.show:
-        show_rgain_info(args, opts.mp3_format)
+        show_rgain_info(opts.audio_file, opts.mp3_format)
     else:
         try:
-            do_gain(args, opts.ref_level, opts.force, opts.dry_run, opts.album,
-                    opts.mp3_format)
+            do_gain(
+                opts.audio_file,
+                opts.ref_level,
+                opts.force,
+                opts.dry_run,
+                opts.album,
+                opts.mp3_format,
+            )
         except Error as exc:
             print("")
             print(str(exc), file=sys.stderr)

@@ -16,7 +16,7 @@
 
 import sys
 import traceback
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 import gi
 
@@ -31,7 +31,7 @@ from rgain3.lib.rgio import AudioFormatError, BaseFormatsMap # noqa isort:skip
 __all__ = [
     "Error",
     "init_gstreamer",
-    "common_options",
+    "common_parser",
 ]
 
 
@@ -74,30 +74,61 @@ def init_gstreamer():
         sys.argv.append(opt)
 
 
-def common_options():
-    opts = OptionParser(version="%%prog %s" % __version__)
+def common_parser(**kwargs) -> ArgumentParser:
+    """Create a new ArgumentParser instance with default arguments that are
+    used both by `replaygain` and `collectiongain`.
 
-    opts.add_option("-f", "--force", help="Recalculate Replay Gain even if the "
-                    "file already contains gain information.", dest="force",
-                    action="store_true")
-    opts.add_option("-d", "--dry-run", help="Don't actually modify any files.",
-                    dest="dry_run", action="store_true")
-    opts.add_option("-r", "--reference-loudness", help="Set the reference "
-                    "loudness to REF dB (default: %default dB)", metavar="REF",
-                    dest="ref_level", action="store", type="int")
-    opts.add_option("--mp3-format", help="Choose the Replay Gain data format "
-                    "for MP3 files. The default setting should be compatible "
-                    "with most decent software music players, so it is "
-                    "generally not necessary to mess with this setting. Check "
-                    "the README or man page for more information.",
-                    dest="mp3_format", action="store", type="choice",
-                    choices=BaseFormatsMap.MP3_DISPLAY_FORMATS)
+    The function takes any keyword arguments that are valid for the
+    instantiation of the `ArgumentParser` class. However, `add_help` and
+    `allow_abbrev` are overwritten with static defaults.
+    """
+    kwargs["add_help"] = True
+    kwargs["allow_abbrev"] = False
+
+    parser = ArgumentParser(**kwargs)
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s " + (__version__ or "-"),
+    )
+    parser.add_argument(
+        "-f", "--force",
+        dest="force",
+        action="store_true",
+        help="Recalculate Replay Gain even if the file already contains gain."
+        "information.",
+    )
+    parser.add_argument(
+        "-d", "--dry-run",
+        dest="dry_run",
+        action="store_true",
+        help="Don't actually modify any files.",
+    )
+    parser.add_argument(
+        "-r", "--reference-loudness",
+        type=int,
+        dest="ref_level",
+        default=89,
+        metavar="REF",
+        help="Set the reference loudness to REF dB (default: %(default)s dB).",
+    )
+    parser.add_argument(
+        "--mp3-format",
+        type=str,
+        dest="mp3_format",
+        default="default",
+        choices=BaseFormatsMap.MP3_DISPLAY_FORMATS,
+        help="Choose the Replay Gain data format for MP3 files. The default "
+        "setting should be compatible with most decent software music players, "
+        "so it is generally not necessary to mess with this setting. Check the "
+        "README or man page for more information.",
+    )
     # This option only exists to show up in the help output; if it's actually
     # specified, GStreamer should eat it.
-    opts.add_option("--help-gst", help="Show GStreamer options.",
-                    dest="help_gst", action="store_true")
-
-    opts.set_defaults(
-        force=False, dry_run=False, ref_level=89, mp3_format="default")
-
-    return opts
+    parser.add_argument(
+        "--help-gst",
+        dest="help_gst",
+        action="store_true",
+        help="Show GStreamer options.",
+    )
+    return parser
