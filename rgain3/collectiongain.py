@@ -20,11 +20,12 @@ import multiprocessing
 import os.path
 import pickle
 import sys
+from argparse import ArgumentError
 from hashlib import md5
 
 import mutagen
 
-from rgain3 import Error, common_options, init_gstreamer
+from rgain3 import Error, common_parser, init_gstreamer
 from rgain3.lib import albumid, rgio
 from rgain3.replaygain import do_gain
 
@@ -294,53 +295,84 @@ def do_collectiongain(music_dir, ref_level=89, force=False, dry_run=False,
     print("All finished.")
 
 
-def collectiongain_options():
-    opts = common_options()
+class PositiveIntOrNone:
+    """A "type" for an argparse argument which can either be None (not present)
+    or a positive integer greater than 0.
+    """
+    def __init__(self, metavar: str):
+        self.metavar = metavar
 
-    opts.add_option("--ignore-cache", help="Do not use the file cache at all.",
-                    dest="ignore_cache", action="store_true")
-    opts.add_option("--regain", help="Fully reprocess everything. Same as "
-                    "'--force --ignore-cache'.",
-                    dest="regain", action="store_true")
-    opts.add_option("-j", "--jobs", help="Specifies the number of jobs to run "
-                    "simultaneously. Must be >= 1. By default, this is set to "
-                    "the number of CPU cores in the system to provide best "
-                    "performance.", dest="jobs", action="store", type="int")
+    def __call__(self, value):
+        if value is None:
+            return None
 
-    opts.set_defaults(ignore_cache=False, jobs=None)
+        try:
+            i = int(value)
+        except ValueError as e:
+            raise ArgumentError(None, str(e)) from None
+        else:
+            if i < 1:
+                raise ArgumentError(
+                    None, "{} must be at least 1".format(self.metavar)
+                )
+        return i
 
-    opts.set_usage("%prog [options] MUSIC_DIR")
-    opts.set_description("Calculate Replay Gain for a large set of audio files "
-                         "without asking many questions. This program "
-                         "calculates an album ID for any audo file in "
-                         "MUSIC_DIR. Then, album gain will be applied to all "
-                         "files with the same album ID. The album ID is "
-                         "created from file tags as follows: If an 'album' tag "
-                         "is present, it is joined with the contents of an "
-                         "'albumartist' tag, or, if that isn't set, the "
-                         "contents of the 'artist' tag, or nothing if there is "
-                         "no 'artist' tag as well. On the other hand, if no "
-                         "'album' tag is present, the file is assumed to be a "
-                         "single track without album; in that case, no album "
-                         "gain will be calculated for that file.")
 
-    return opts
+def collectiongain_parser():
+    parser = common_parser(
+        description="Calculate Replay Gain for a large set of audio files "
+        "without asking many questions. This program calculates an album ID "
+        "for any audo file in MUSIC_DIR. Then, album gain will be applied to "
+        "all files with the same album ID. The album ID is created from file "
+        "tags as follows: If an 'album' tag is present, it is joined with the "
+        "contents of an 'albumartist' tag, or, if that isn't set, the contents "
+        "of the 'artist' tag, or nothing if there is no 'artist' tag as well. "
+        "On the other hand, if no 'album' tag is present, the file is assumed "
+        "to be a single track without album; in that case, no album gain will "
+        "be calculated for that file."
+    )
+    parser.add_argument(
+        "--ignore-cache",
+        action="store_true",
+        dest="ignore_cache",
+        help="Do not use the file cache at all.",
+    )
+    parser.add_argument(
+        "--regain",
+        action="store_true",
+        help="Fully reprocess everything. Same as '--force --ignore-cache'.",
+    )
+    parser.add_argument(
+        "-j", "--jobs",
+        type=PositiveIntOrNone("JOBS"),
+        help="Specifies the number of jobs to run simultaneously. Must be >= "
+        "1. By default, this is set to the number of CPU cores in the system "
+        "to provide best performance.",
+    )
+    parser.add_argument(
+        "music_dir",
+        metavar="MUSIC_DIR",
+    )
+    return parser
 
 
 def main():
     init_gstreamer()
-    optparser = collectiongain_options()
-    opts, args = optparser.parse_args()
-    if len(args) != 1:
-        optparser.error("pass one directory path")
-    if opts.jobs is not None and opts.jobs < 1:
-        optparser.error("jobs must be at least 1")
+    parser = collectiongain_parser()
+    opts = parser.parse_args()
+
     if opts.regain:
         opts.force = opts.ignore_cache = True
-
     try:
-        do_collectiongain(args[0], opts.ref_level, opts.force, opts.dry_run,
-                          opts.mp3_format, opts.ignore_cache, opts.jobs)
+        do_collectiongain(
+            opts.music_dir,
+            opts.ref_level,
+            opts.force,
+            opts.dry_run,
+            opts.mp3_format,
+            opts.ignore_cache,
+            opts.jobs,
+        )
     except Error as exc:
         print("")
         print(str(exc), file=sys.stderr)
