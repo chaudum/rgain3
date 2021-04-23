@@ -1,14 +1,22 @@
-**This repository is a fork of Felix Krull's `rgain` repository on Bitbucket
-which aims to port the codebase to a modern Python 3 version.**
+# 🎚️ rgain3
 
-# rgain3 -- ReplayGain tools and Python library
+## ReplayGain tools and Python library
 
-This Python package provides modules to read, write and calculate Replay Gain
-as well as 2 scripts that utilize these modules to do Replay Gain.
+This Python package provides APIs to read, calculate and write ReplayGain using
+Python as well as two scripts that utilize these APIs to apply ReplayGain
+information on audio files.
 
-[Replay Gain][1] is a proposed standard (and has been for some time -- but it's
-widely accepted) that's designed to solve the problem of varying volumes between
-different audio files. I won't lay it all out for you here, go read it yourself.
+_This is a Python 3 fork of Felix Krull's `rgain` repository on Bitbucket._
+
+## What is ReplayGain?
+
+> ReplayGain is a proposed standard published by David Robinson in 2001 to measure and normalize the perceived loudness of audio in computer audio formats such as MP3 and Ogg Vorbis. It allows media players to normalize loudness for individual tracks or albums. This avoids the common problem of having to manually adjust volume levels between tracks when playing audio files from albums that have been mastered at different loudness levels.
+
+-- Source: [Wikipedia][1]
+
+> ReplayGain is the name of a technique invented to achieve the same perceived playback loudness of audio files. It defines an algorithm to measure the perceived loudness of audio data.
+
+-- Source: [hydrogenaud.io][2]
 
 ## Requirements
 
@@ -43,9 +51,11 @@ Just install it like any other Python package using `pip`:
 $ python3 -m pip install --user rgain3
  ```
 
-## `replaygain`
+## Usage
 
-This is a program like, say, **vorbisgain** or **mp3gain**, the difference
+### `replaygain`
+
+This is a program like, say, `vorbisgain` or `mp3gain`, the difference
 being that instead of supporting a mere one format, it supports several:
 
 - Ogg Vorbis (or probably anything you can put into an Ogg container)
@@ -54,22 +64,22 @@ being that instead of supporting a mere one format, it supports several:
 - MP4 (commonly using the AAC codec)
 - MP3
 
-Basic usage is simple:
+The basic usage of the program is simple:
 
 ```console
 $ replaygain AUDIOFILE1 AUDIOFILE2 ...
 ```
 
-There are some options; see them by running:
+There are various options; see them by running:
 
 ```console
 $ replaygain --help
 ```
 
-## `collectiongain`
+### `collectiongain`
 
 This program is designed to apply Replay Gain to whole music collections, plus
-the ability to simply add new files, run **collectiongain** and have it
+the ability to simply add new files, run `collectiongain` and have it
 replay-gain those files without asking twice.
 
 To use it, simply run:
@@ -86,11 +96,12 @@ $ collectiongain --help
 
 to see possible options.
 
-If, however, you want to find out how exactly **collectiongain** works, read on
+If, however, you want to find out how exactly `collectiongain` works, read on
 (but be warned: It's long, boring, technical, incomprehensible and awesome).
-**collectiongain** runs in two phases: The file collecting phase and the actual
-run. Prior to analyzing any audio data, **collectiongain** gathers all audio files in
-the directory and determines a so-called album ID for each from the file's tags:
+`collectiongain` runs in two phases: The file collecting phase and the actual
+run. Prior to analyzing any audio data, `collectiongain` gathers all audio
+files in the directory and determines a so-called album ID for each from the
+file's tags:
 
 - If the file contains a Musicbrainz album ID, that is used.
 - Otherwise, if the file contains an *album* tag, it is joined with either
@@ -106,65 +117,52 @@ the directory and determines a so-called album ID for each from the file's tags:
   album gain.
 
 Since this step takes a relatively long time, the album IDs are cached between
-several runs of **collectiongain**. If a file was modified or a new file was
+several runs of `collectiongain`. If a file was modified or a new file was
 added, the album ID will be (re-)calculated for that file only.
 The program will also cache an educated guess as to whether a file was already
-processed and had Replay Gain added -- if **collectiongain** thinks so, that
+processed and had ReplayGain added -- if `collectiongain` thinks so, that
 file will totally ignored for the actual run. This flag is set whenever the file
 is processed in the actual run phase (save for dry runs, which you can enable
-with the **--dry-run** switch) and is cleared whenever a file was changed. You
-can pass the **ignore-cache** switch to make **collectiongain** totally ignore
+with the `--dry-run` switch) and is cleared whenever a file was changed. You
+can pass the `--ignore-cache` switch to make `collectiongain` totally ignore
 the cache; in that case, it will behave as if no cache was present and read your
 collection from scratch.
 
-For the actual run, **collectiongain** will simply look at all files that have
-survived the cleansing described above; for files that don't contain Replay Gain
-information, **collectiongain** will calculate it and write it to the files (use
-the **--force** flag to calculate gain even if the file already has gain data).
+For the actual run, `collectiongain` will simply look at all files that have
+survived the cleansing described above; for files that don't contain ReplayGain
+information, `collectiongain` will calculate it and write it to the files (use
+the `--force` flag to calculate gain even if the file already has gain data).
 Here comes the big moment of the album ID: files that have the same album ID are
 considered to be one album (duh) for the calculation of album gain. If only one
 file of an album is missing gain information, the whole album will be
 recalculated to make sure the data is up-to-date.
 
-## MP3 formats
+### MP3 formats
 
-Proper Replay Gain support for MP3 files is a bit of a mess: on the one hand,
-there is the **mp3gain** [application][2] which was relatively widely used (I
+Proper ReplayGain support for MP3 files is a bit of a mess: on the one hand,
+there is the `mp3gain` [application][3] which was relatively widely used (I
 don't know if it still is) -- it directly modifies the audio data which has the
 advantage that it works with pretty much any player, but it also means you have
 to decide ahead of time whether you want track gain or album gain. Besides, it's
 just not very elegant. On the other hand, there are at least two commonly used
-ways [to store proper Replay Gain information in ID3v2 tags][3].
+ways [to store proper ReplayGain information in ID3v2 tags][4].
 
 Now, in general you don't have to worry about this when using this package: by
-default, **replaygain** and **collectiongain** will read and write Replay Gain
+default, `replaygain` and `collectiongain` will read and write ReplayGain
 information in the two most commonly used formats. However, if for whatever
-reason you need more control over the MP3 Replay Gain information, you can use
-the **--mp3-format** option (supported by both programs) to change the
-behaviour. Possible choices with this switch are:
+reason you need more control over the MP3 ReplayGain information, you can use
+the `--mp3-format` option (supported by both programs) to change the
+behaviour.
 
-*replaygain.org* (alias: *fb2k*)
-  Replay Gain information is stored in ID3v2 TXXX frames. This format is
-  specified on the replaygain.org website as the recommended format for MP3
-   files. Notably, this format is used by music players like [foobar2000][4] 
-   and [Quod Libet][5]. The latter can also fall back on the legacy format.
-*legacy* (alias: *ql*)
-  Replay Gain information is stored in ID3v2.4 RVA2 frames. This format is
-   described as "legacy" by replaygain.org; however, it might still be the
-   primary format for some music players. It should be noted that this format
-   does not support volume adjustments of more than 64 dB: if the calculated
-   gain value is smaller than -64 dB or greater than or equal to +64 dB, it is
-   clamped to these limit values.
-*default*
-  This is the default implementation used by both **replaygain** and
-  **collectiongain**. When writing Replay Gain data, both the *replaygain.org*
-  as well as the *legacy* format are written. As for reading, if a file
-  contains data in both formats, both data sets are read and then compared. If
-  they match up, that Replay Gain information is returned for the file.
-  However, if they don't match, no Replay Gain data is returned to signal that
-  this file does not contain valid (read: consistent) Replay Gain information.
+Possible choices with this switch are:
 
-# Development
+| Name | Description |
+|------|-------------|
+| `replaygain.org`<br>(alias: `fb2k`) | Replay Gain information is stored in ID3v2 TXXX frames. This format is specified on the replaygain.org website as the recommended format for MP3 files. Notably, this format is used by music players like [foobar2000][5] and [Quod Libet][6]. The latter can also fall back on the legacy format. |
+| `legacy`<br>(alias: `ql`) | Replay Gain information is stored in ID3v2.4 RVA2 frames. This format is described as "legacy" by replaygain.org; however, it might still be the primary format for some music players. It should be noted that this format does not support volume adjustments of more than 64 dB: if the calculated gain value is smaller than -64 dB or greater than or equal to +64 dB, it is clamped to these limit values. |
+| `default` | This is the default implementation used by both `replaygain` and `collectiongain`. When writing ReplayGain data, both the `replaygain.org` as well as the `legacy` format are written. As for reading, if a file contains data in both formats, both data sets are read and then compared. If they match up, that ReplayGain information is returned for the file. However, if they don't match, no ReplayGain data is returned to signal that this file does not contain valid (read: consistent) ReplayGain information. |
+
+## Development
 
 Fork and clone this repository. Inside the checkout create a `virtualenv` and install `rgain3` in develop mode:
 
@@ -193,7 +191,7 @@ You can run tests for all supported Python version using `tox` like so:
 (env) $ tox
 ```
 
-# Copyright
+## Copyright
 
 With the exception of the manpages, all files are::
 
@@ -206,8 +204,9 @@ The manpages were originally written for the Debian project and are::
 - Copyright (c) 2012-2015 Felix Krull <f_krull@gmx.de>
 
 
-[1]: https://wiki.hydrogenaud.io/index.php?title=ReplayGain
-[2]: http://mp3gain.sourceforce.net
-[3]: http://wiki.hydrogenaudio.org/index.php?title=ReplayGain_specification#ID3v2
-[4]: http://foobar2000.org
-[5]: https://github.com/quodlibet/quodlibet/
+[1]: https://en.wikipedia.org/wiki/ReplayGain
+[2]: http://wiki.hydrogenaud.io/index.php?title=ReplayGain
+[3]: http://mp3gain.sourceforge.net/
+[4]: http://wiki.hydrogenaud.io/index.php?title=ReplayGain_specification#ID3v2
+[5]: http://foobar2000.org
+[6]: https://github.com/quodlibet/quodlibet/
