@@ -37,3 +37,11 @@ jobs:
       - name: Run tests
         run: |
           python -m pytest
+      - name: Test source distribution
+        run: |
+          rm -fr dist
+          python setup.py sdist
+          tar -C dist -axvf dist/*.tar.gz
+          ( cd dist/*/; python setup.py build )
+          ( cd dist/*/; python -m pytest )
+          ( cd dist/*/; python setup.py install --user )
