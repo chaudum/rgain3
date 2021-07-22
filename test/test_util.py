@@ -13,6 +13,9 @@ from rgain3.util import parse_db, parse_peak
     ("1.0 dB", 1.0),
     ("1.0dB", 1.0),
     (" 1.0dB ", 1.0),
+    # The value may also be of type bytes
+    # https://github.com/chaudum/rgain3/issues/38
+    (b" 1.0dB ", 1.0),
 ])
 def test_parse_db(in_value, expected):
     assert parse_db(in_value) == expected
@@ -25,6 +28,9 @@ def test_parse_db(in_value, expected):
     ("1", 1.0),
     ("1.0", 1.0),
     (" 1.0 ", 1.0),
+    # The value may also be of type bytes
+    # https://github.com/chaudum/rgain3/issues/38
+    (b" 1.0 ", 1.0),
 ])
 def test_parse_peak(in_value, expected):
     assert parse_peak(in_value) == expected

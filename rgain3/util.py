@@ -17,27 +17,40 @@
 import contextlib
 import logging
 import sys
-from typing import Optional
+from typing import Optional, Union
 
 logger = logging.getLogger(__name__)
 
 
+def _ensure_str(value: Union[str, bytes]) -> str:
+    if isinstance(value, str):
+        return value
+    elif isinstance(value, bytes):
+        return value.decode()
+    raise TypeError
+
+
 def _str_to_float(value: str) -> Optional[float]:
     try:
-        return float(value.strip())
+        return float(value)
     except ValueError:
         logger.info("Could not convert '%s' to float", value)
     return None
 
 
-def parse_db(value: str) -> Optional[float]:
-    value = value.strip()
+def parse_db(value: Union[str, bytes]) -> Optional[float]:
+    # The db value from mutagen _should_ by of type str, but there are cases
+    # where we get bytes, see https://github.com/chaudum/rgain3/issues/38
+    value = _ensure_str(value.strip())
     if value.lower().endswith("db"):
         value = value[:-2].strip()
     return _str_to_float(value)
 
 
 def parse_peak(value: str) -> Optional[float]:
+    # The db value from mutagen _should_ by of type str, but there are cases
+    # where we get bytes, see https://github.com/chaudum/rgain3/issues/38
+    value = _ensure_str(value.strip())
     return _str_to_float(value)
 
 
