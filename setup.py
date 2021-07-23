@@ -11,7 +11,7 @@ from typing import List
 from pkg_resources.extern.packaging.version import Version
 
 # a version must be PEP 440 compliant
-__version__ = Version("1.1.0")
+__version__ = Version("1.1.1")
 
 
 def requirements(filename: str) -> List[str]:
