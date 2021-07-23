@@ -4,6 +4,9 @@ Changes
 Unreleased
 ----------
 
+rgain3 1.1.1 (2021-07-23)
+-------------------------
+
 - Always convert tag values to strings, which fixes a `TypeError` when mutagen returns `bytes`
   values from audio metadata fields. (#38)
 
