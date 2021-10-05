@@ -336,6 +336,7 @@ class BaseFormatsMap:
     BASE_MAP = {
         "ogg": _simplereaderwriter,
         "oga": _simplereaderwriter,
+        "opus": _simplereaderwriter,
         "flac": _simplereaderwriter,
         "wv": _simplereaderwriter,
         "m4a": _mp4readerwriter,
