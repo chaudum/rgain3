@@ -1,4 +1,0 @@
-pytest
-pytest-cov>=2.8
-pytest-flake8>=1.0
-pytest-isort>=0.3

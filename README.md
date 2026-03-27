@@ -20,7 +20,7 @@ _This is a Python 3 fork of Felix Krull's `rgain` repository on Bitbucket._
 
 ## Requirements
 
-- Python >= 3.10 -- http://python.org/
+- Currently supported Python version -- http://python.org/
 - GStreamer -- http://gstreamer.org/
 - PyGObject -- https://pygobject.readthedocs.io/en/latest/
 
@@ -43,13 +43,15 @@ replace `python3-gi` with `libcairo2-dev libgirepository-2.0-dev`.)
 You will also need GStreamer decoding plugins for any audio formats you want to
 use.
 
-## Installation
+## Install from source
 
-Just install it like any other Python package using `pip`:
+The project is configured using a `pyproject.toml`.
 
- ```console
-$ python3 -m pip install --user rgain3
- ```
+It is recommended to use [`uv`](https://docs.astral.sh/uv/) tooling for building the project locally:
+
+```console
+$ uv sync
+```
 
 ## Usage
 
