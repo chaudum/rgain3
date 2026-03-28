@@ -28,7 +28,7 @@ class Version(tuple):
 
 
 # a version must be PEP 440 compliant
-__version__ = Version(1, 0, 0)
+__version__ = Version(1, 1, 1)
 
 
 def requirements(filename: str) -> List[str]:

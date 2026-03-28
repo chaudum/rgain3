@@ -1,14 +1,22 @@
 Changes
 =======
 
+- Fixed `--version` (#57)
+- Fixed broken import `pkg_resources` when project is built with a setuptools version newer than 82.0
 - Fixed string format syntax error in ``__str__`` method of the ``GainData``
   class which could be thrown in case ``rgain3`` was used as a library.
-- Dropped support for Python 3.5 which reached end-of-life
+- Dropped support for Python 3.5, 3.6, and 3.7 which reached end-of-life
 - Added support for MP4/iTunes album/artist tags
 - Updated the package structure so that the scripts are located in the `rgain`
   module. This means that they can now also be invoked using `python -m
   rgain3.replaygain` and `python -m rgain3.collectiongain`.
 - Added file type guessing based on magic numbers signature
+
+rgain3 1.1.1 (2021-07-23)
+-------------------------
+
+- Always convert tag values to strings, which fixes a `TypeError` when mutagen returns `bytes`
+  values from audio metadata fields. (#38)
 
 rgain3 1.1.0 (2020-11-12)
 -------------------------
