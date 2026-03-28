@@ -20,7 +20,7 @@ _This is a Python 3 fork of Felix Krull's `rgain` repository on Bitbucket._
 
 ## Requirements
 
-- Python >= 3.6 -- http://python.org/
+- Python >= 3.8 -- http://python.org/
 - GStreamer -- http://gstreamer.org/
 - PyGObject -- https://pygobject.readthedocs.io/en/latest/
 
