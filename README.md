@@ -20,7 +20,7 @@ _This is a Python 3 fork of Felix Krull's `rgain` repository on Bitbucket._
 
 ## Requirements
 
-- Python >= 3.8 -- http://python.org/
+- Python >= 3.10 -- http://python.org/
 - GStreamer -- http://gstreamer.org/
 - PyGObject -- https://pygobject.readthedocs.io/en/latest/
 
@@ -38,7 +38,7 @@ $ apt install \
 ```
 
 (Or if you prefer to install the latest PyGObject from source code,
-replace `python3-gi` with `libcairo2-dev libgirepository1.0-dev`.)
+replace `python3-gi` with `libcairo2-dev libgirepository-2.0-dev`.)
 
 You will also need GStreamer decoding plugins for any audio formats you want to
 use.

@@ -145,8 +145,6 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License (GPL)",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
@@ -169,7 +167,7 @@ setup(
     extras_require={
         "test": ["tox>=3.14,<4.0"] + requirements("test-requirements.txt")
     },
-    python_requires=">=3.8",
+    python_requires=">=3.10",
 
     **manpages_args
 )
