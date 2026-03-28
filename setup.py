@@ -18,10 +18,17 @@ from datetime import date
 from distutils.command.build import build
 from typing import List
 
-from pkg_resources.extern.packaging.version import Version
+
+class Version(tuple):
+    def __new__(self, major, minor, patch):
+        return tuple.__new__(Version, (major, minor, patch))
+
+    def __str__(self):
+        return ".".join(map(str, self))
+
 
 # a version must be PEP 440 compliant
-__version__ = Version("1.0.0")
+__version__ = Version(1, 0, 0)
 
 
 def requirements(filename: str) -> List[str]:
@@ -32,8 +39,7 @@ def requirements(filename: str) -> List[str]:
 try:
     from setuptools import Command, Distribution, setup
 except ImportError:
-    print("setuptools unavailable, falling back to distutils.",
-          file=sys.stderr)
+    print("setuptools unavailable, falling back to distutils.", file=sys.stderr)
     from distutils.core import Command, Distribution, setup
 
 
@@ -125,6 +131,7 @@ setup(
     name="rgain3",
     version=str(__version__),
     description="Multi-format Replay Gain utilities",
+    readme="README.md",
     author="Felix Krull",
     author_email="f_krull@gmx.de",
     maintainer="Christian Haudum",
@@ -138,15 +145,18 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License (GPL)",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "Topic :: Multimedia :: Sound/Audio :: Analysis",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     long_description=__doc__,
-    packages=["rgain3"],
+    packages=["rgain3", "rgain3.lib"],
     console_entrypoints={
     },
     entry_points={
@@ -159,7 +169,7 @@ setup(
     extras_require={
         "test": ["tox>=3.14,<4.0"] + requirements("test-requirements.txt")
     },
-    python_requires=">=3.5",
+    python_requires=">=3.8",
 
     **manpages_args
 )
