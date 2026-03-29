@@ -4,7 +4,6 @@ include MANIFEST.in
 include man/*
 include requirements.txt
 include test-requirements.txt
-include test/data/*.flac
-include test/data/*.mp3
+include test/data/*
 include tests.sh
 include tox.ini
