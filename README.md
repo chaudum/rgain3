@@ -53,6 +53,14 @@ It is recommended to use [`uv`](https://docs.astral.sh/uv/) tooling for building
 $ uv sync
 ```
 
+After syncing dependencies you can invoke `replaygain` and `collectiongain` scripts using `uv run`:
+
+```console
+$ uv run [replaygain | collectiongain]
+```
+
+Alternatively, you can source the virtualenv that uv created and run the scripts directly.
+
 ## Usage
 
 ### `replaygain`
@@ -166,32 +174,37 @@ Possible choices with this switch are:
 
 ## Development
 
-Fork and clone this repository. Inside the checkout create a `virtualenv` and install `rgain3` in develop mode:
+Fork and clone this repository.
+Inside the checkout install `rgain3` in develop mode using `uv sync`.
 
 Note that developing from source requires the Python headers and therefore the
 `python3.x-dev` system package to be installed.
 
 ```console
-$ python3 -m venv env
-$ source env/bin/activate
-(env) $ python -m pip install -Ue .
+$ uv sync --dev
 ```
 
-### Running Tests
-
-To run the tests with the Python version of your current virtualenv, simply
-invoke `pytest` installing `test` extras:
+### Running tests
 
 ```console
-(env) $ python -m pip install -Ue ".[test]"
-(env) $ pytest
+$ uv sync --dev --extra test
+$ uv run pytest -vvv
 ```
 
-You can run tests for all supported Python version using `tox` like so:
+### Building distribution
+
+Use `uv build` to create source (sdist) and binary (wheel) distributions.
 
 ```console
-(env) $ tox
+$ uv build 
+$ tree dist 
+dist
+├── rgain3-1.1.1.dev0-py3-none-any.whl
+└── rgain3-1.1.1.dev0.tar.gz
+
+1 directory, 2 files
 ```
+
 
 ## Copyright
 
