@@ -20,7 +20,7 @@ _This is a Python 3 fork of Felix Krull's `rgain` repository on Bitbucket._
 
 ## Requirements
 
-- Python >= 3.10 -- http://python.org/
+- Currently supported Python version -- http://python.org/
 - GStreamer -- http://gstreamer.org/
 - PyGObject -- https://pygobject.readthedocs.io/en/latest/
 
@@ -43,13 +43,23 @@ replace `python3-gi` with `libcairo2-dev libgirepository-2.0-dev`.)
 You will also need GStreamer decoding plugins for any audio formats you want to
 use.
 
-## Installation
+## Install from source
 
-Just install it like any other Python package using `pip`:
+The project is configured using a `pyproject.toml`.
 
- ```console
-$ python3 -m pip install --user rgain3
- ```
+It is recommended to use [`uv`](https://docs.astral.sh/uv/) tooling for building the project locally:
+
+```console
+$ uv sync
+```
+
+After syncing dependencies you can invoke `replaygain` and `collectiongain` scripts using `uv run`:
+
+```console
+$ uv run [replaygain | collectiongain]
+```
+
+Alternatively, you can source the virtualenv that uv created and run the scripts directly.
 
 ## Usage
 
@@ -164,32 +174,37 @@ Possible choices with this switch are:
 
 ## Development
 
-Fork and clone this repository. Inside the checkout create a `virtualenv` and install `rgain3` in develop mode:
+Fork and clone this repository.
+Inside the checkout install `rgain3` in develop mode using `uv sync`.
 
 Note that developing from source requires the Python headers and therefore the
 `python3.x-dev` system package to be installed.
 
 ```console
-$ python3 -m venv env
-$ source env/bin/activate
-(env) $ python -m pip install -Ue .
+$ uv sync --dev
 ```
 
-### Running Tests
-
-To run the tests with the Python version of your current virtualenv, simply
-invoke `pytest` installing `test` extras:
+### Running tests
 
 ```console
-(env) $ python -m pip install -Ue ".[test]"
-(env) $ pytest
+$ uv sync --dev --extra test
+$ uv run pytest -vvv
 ```
 
-You can run tests for all supported Python version using `tox` like so:
+### Building distribution
+
+Use `uv build` to create source (sdist) and binary (wheel) distributions.
 
 ```console
-(env) $ tox
+$ uv build 
+$ tree dist 
+dist
+├── rgain3-1.1.1.dev0-py3-none-any.whl
+└── rgain3-1.1.1.dev0.tar.gz
+
+1 directory, 2 files
 ```
+
 
 ## Copyright
 

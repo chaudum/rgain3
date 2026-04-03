@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rgain3"
+version = "1.1.1-dev"
+description = "Multi-format Replay Gain utilities"
+readme = "README.md"
+authors = [
+  { name = "Felix Krull", email = "f_krull@gmx.de" }
+]
+maintainers= [
+  { name = "Christian Haudum", email = "christian@haudum.dev" }
+]
+license = {text = "GNU General Public License (v2 or later)"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "setuptools",
+    "filetype>=1.2.0",
+    "mutagen>=1.45.1",
+    "pygobject>=3.38.0",
+]
+
+[project.scripts]
+collectiongain = "rgain3.collectiongain:main"
+replaygain = "rgain3.replaygain:main"
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-isort",
+    "pytest-cov",
+]
+
+[project.urls]
+Homepage = "https://github.com/chaudum/rgain"
+
+[tool.uv]
+package = true 
+
+[tool.setuptools.packages.find]
+include = ["rgain3", "rgain3.lib", "man"]
+
+[tool.isort]
+combine_as_imports = true
+default_section = "THIRDPARTY"
+include_trailing_comma = true
+known_first_party = "rgain3"
+line_length = 80
+multi_line_output = 3
+not_skip = "__init__.py"
+
+[tool.pytest]
+minversion = "9.0"
+testpaths = [
+    "test",
+    "rgain3",
+]
+addopts = [
+    "--showlocals",
+    "--full-trace",
+    "--isort",
+    "--cov=rgain3",
+    "--cov-report=term-missing",
+]
+
+[tool.bdist_wheel]
+universal = 1
